@@ -1,0 +1,138 @@
+"use client";
+import { useState } from "react";
+import { signIn } from "next-auth/react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
+
+const LoginSchema = z.object({
+  email: z.string().email("И-мэйл буруу байна"),
+  password: z.string().min(1, "Нууц үг оруулна уу"),
+});
+
+type LoginForm = z.infer<typeof LoginSchema>;
+
+export default function LoginPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  const handleFacebookLogin = async () => {
+    const result = await signIn("facebook", { redirect: false, callbackUrl: "/" });
+    if (!result?.url) return;
+    const w = 500, h = 600;
+    const popup = window.open(
+      result.url,
+      "facebook-login",
+      `width=${w},height=${h},left=${Math.round((screen.width - w) / 2)},top=${Math.round((screen.height - h) / 2)},scrollbars=yes`
+    );
+    const timer = setInterval(() => {
+      if (!popup || popup.closed) {
+        clearInterval(timer);
+        router.refresh();
+      }
+    }, 800);
+  };
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginForm>({ resolver: zodResolver(LoginSchema) });
+
+  const onSubmit = async (data: LoginForm) => {
+    setLoading(true);
+    const res = await signIn("credentials", {
+      email: data.email,
+      password: data.password,
+      redirect: false,
+    });
+    setLoading(false);
+
+    if (res?.error) {
+      toast.error("И-мэйл эсвэл нууц үг буруу байна");
+    } else {
+      toast.success("Амжилттай нэвтэрлээ");
+      router.push("/");
+      router.refresh();
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-sm space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl font-bold">Нэвтрэх</h1>
+          <p className="text-sm text-muted-foreground">
+            Бүртгэлгүй юу?{" "}
+            <Link href="/auth/register" className="text-primary hover:underline">
+              Бүртгүүлэх
+            </Link>
+          </p>
+        </div>
+
+        {/* OAuth buttons */}
+        <div className="space-y-2">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => signIn("google", { callbackUrl: "/" })}
+          >
+            Google-р нэвтрэх
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={handleFacebookLogin}
+          >
+            Facebook-р нэвтрэх
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Separator className="flex-1" />
+          <span className="text-xs text-muted-foreground">эсвэл</span>
+          <Separator className="flex-1" />
+        </div>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">И-мэйл</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="name@example.com"
+              {...register("email")}
+            />
+            {errors.email && (
+              <p className="text-xs text-destructive">{errors.email.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password">Нууц үг</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              {...register("password")}
+            />
+            {errors.password && (
+              <p className="text-xs text-destructive">{errors.password.message}</p>
+            )}
+          </div>
+
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Нэвтэрч байна..." : "Нэвтрэх"}
+          </Button>
+        </form>
+      </div>
+    </div>
+  );
+}

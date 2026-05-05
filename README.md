@@ -1,36 +1,137 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AziMarket
 
-## Getting Started
+Монгол хэлт онлайн дэлгүүрийн платформ. Next.js 15, MongoDB, NextAuth v5.
 
-First, run the development server:
+## Эхлүүлэх
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Тест данс
 
-## Learn More
+### Удирдлага (superadmin)
 
-To learn more about Next.js, take a look at the following resources:
+| Талбар  | Утга                        |
+| ------- | --------------------------- |
+| И-мэйл  | `admin@test.com`            |
+| Нууц үг | `admin123`                  |
+| Дүр     | superadmin                  |
+| Хандах  | http://localhost:3000/admin |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Хэрэглэгч
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Талбар  | Утга            |
+| ------- | --------------- |
+| И-мэйл  | `user@test.com` |
+| Нууц үг | `user123`       |
+| Дүр     | user            |
 
-## Deploy on Vercel
+> Seed ажиллуулаагүй бол: `pnpm seed`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Скриптүүд
+
+```bash
+pnpm dev          # dev server (http://localhost:3000)
+pnpm build        # production build
+pnpm start        # production server
+pnpm seed         # MongoDB-д тест дата үүсгэх
+pnpm tsc --noEmit # TypeScript шалгах
+```
+
+---
+
+## Шаардлагатай ENV
+
+`.env` файлд дараах утгуудыг тохируулна:
+
+```env
+# MongoDB
+MONGODB_URI=mongodb+srv://...
+MONGODB_DB_NAME=azimarket
+
+# NextAuth
+NEXTAUTH_SECRET=...
+NEXTAUTH_URL=http://localhost:3000
+
+# Cloudinary
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+
+
+# Google OAuth
+AUTH_GOOGLE_ID=...
+AUTH_GOOGLE_SECRET=...
+
+# Facebook OAuth
+AUTH_FACEBOOK_ID=...
+AUTH_FACEBOOK_SECRET=...
+
+# App URL
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Optional (Telegram мэдэгдэл)
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
+
+# Optional (QPay төлбөр)
+QPAY_USERNAME=
+QPAY_PASSWORD=
+QPAY_INVOICE_CODE=
+```
+
+---
+
+## Хуудсуудын жагсаалт
+
+| URL                 | Тайлбар                    | Хандах эрх |
+| ------------------- | -------------------------- | ---------- |
+| `/`                 | Нүүр хуудас                | Бүгд       |
+| `/products`         | Бүтээгдэхүүний жагсаалт    | Бүгд       |
+| `/products/[slug]`  | Бүтээгдэхүүний дэлгэрэнгүй | Бүгд       |
+| `/shopping-cart`    | Сагс + захиалах            | Бүгд       |
+| `/auth/login`       | Нэвтрэх                    | —          |
+| `/auth/register`    | Бүртгүүлэх                 | —          |
+| `/accounts/orders`  | Миний захиалгууд           | Нэвтэрсэн  |
+| `/accounts/profile` | Профайл                    | Нэвтэрсэн  |
+| `/admin`            | Удирдлагын самбар          | admin+     |
+| `/admin/products`   | Бараа удирдах              | admin+     |
+| `/admin/orders`     | Захиалга удирдах           | moderator+ |
+| `/admin/users`      | Хэрэглэгч удирдах          | admin+     |
+
+---
+
+## Технологийн стек
+
+- **Next.js 15** — App Router, Server Components
+- **MongoDB + Mongoose** — `sanitizeFilter: true` (NoSQL injection хамгаалалт)
+- **NextAuth v5** — Google, Facebook, Credentials
+- **Zustand** — Сагсны төлөв (localStorage persist)
+- **TanStack Query v5** — Серверийн кэш
+- **shadcn/ui** — `@base-ui/react` дээр суурилсан UI компонентууд
+- **Tailwind CSS v4**
+- **Cloudinary** — Зурагны хадгалалт (SDK-гүй, шууд REST API)
+- **Zod + React Hook Form** — Форм баталгаажуулалт
+- **isomorphic-dompurify** — XSS хамгаалалт
+
+---
+
+## RBAC дүрмийн матриц
+
+| Үйлдэл                  | user | moderator | admin | superadmin |
+| ----------------------- | ---- | --------- | ----- | ---------- |
+| Бараа харах             | ✓    | ✓         | ✓     | ✓          |
+| Бараа нэмэх/устгах      | —    | —         | ✓     | ✓          |
+| Бараа засах             | —    | ✓         | ✓     | ✓          |
+| Захиалга харах (бүгд)   | —    | ✓         | ✓     | ✓          |
+| Захиалгын төлөв өөрчлөх | —    | —         | ✓     | ✓          |
+| Хэрэглэгч удирдах       | —    | —         | ✓     | ✓          |
+| Дүр өгөх                | —    | —         | —     | ✓          |
