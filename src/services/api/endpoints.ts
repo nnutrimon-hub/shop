@@ -30,6 +30,5 @@ export const API_ENDPOINTS = {
     qpayCallback: "/api/payment/qpay/callback",
   },
   deliveryZones: "/api/delivery-zones",
-  search: "/api/search",
   register: "/api/register",
 } as const;

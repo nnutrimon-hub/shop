@@ -16,9 +16,10 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { getImageUrl } from "@/lib/cloudinary";
 import { formatPrice } from "@/lib/utils";
-import { useSearchProducts } from "@/services/hooks/useProducts";
+import { useInfiniteSearchProducts } from "@/services/hooks/useProducts";
 import { useCartStore } from "@/store/cartStore";
 import { useUIStore } from "@/store/uiStore";
 import {
@@ -28,26 +29,135 @@ import {
   Settings,
   ShoppingCart,
   User,
+  X,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+interface SearchProduct {
+  _id: string;
+  name: string;
+  slug: string;
+  imageKeys: string[];
+  price: number;
+  salePrice?: number | null;
+}
+
+function SearchDropdown({
+  q,
+  onSelect,
+  cols = 3,
+}: {
+  q: string;
+  onSelect: () => void;
+  cols?: 2 | 3;
+}) {
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteSearchProducts(q);
+  const sentinelRef = useInfiniteScroll(
+    fetchNextPage,
+    !!hasNextPage && !isFetchingNextPage,
+  );
+
+  const products =
+    data?.pages.flatMap((p) => p.products as unknown as SearchProduct[]) ?? [];
+
+  if (products.length === 0 && !isFetchingNextPage) {
+    return (
+      <div className="p-6 text-center text-sm text-muted-foreground">
+        Хайлт олдсонгүй
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div
+        className={`grid gap-2 p-3 ${cols === 2 ? "grid-cols-2" : "grid-cols-3"}`}
+      >
+        {products.map((p) => {
+          const hasDiscount =
+            p.salePrice != null && p.salePrice > 0 && p.salePrice < p.price;
+          const displayPrice = hasDiscount ? p.salePrice! : p.price;
+          return (
+            <Link
+              key={p._id}
+              href={`/products/${p.slug}`}
+              onClick={onSelect}
+              className="rounded-lg border bg-card hover:bg-muted transition-colors overflow-hidden"
+            >
+              <div className="relative aspect-square bg-muted">
+                {p.imageKeys?.[0] ? (
+                  <Image
+                    src={getImageUrl(p.imageKeys[0], { width: 200 })}
+                    alt={p.name}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Package className="w-6 h-6 text-muted-foreground/30" />
+                  </div>
+                )}
+              </div>
+              <div className="p-1.5 space-y-0.5">
+                <p className="text-xs font-medium line-clamp-2 leading-snug">
+                  {p.name}
+                </p>
+                <p className="text-xs text-primary font-semibold">
+                  {formatPrice(displayPrice)}
+                </p>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+      {/* Sentinel — triggers next page load when visible */}
+      <div ref={sentinelRef} className="h-4" />
+      {isFetchingNextPage && (
+        <div className="py-3 text-center text-xs text-muted-foreground">
+          Ачааллаж байна...
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Navbar() {
   const { data: session } = useSession();
   const { isNavOpen, setNavOpen } = useUIStore();
-  const { setCartOpen, toggleCart } = useUIStore();
+  const { toggleCart } = useUIStore();
   const totalItems = useCartStore((s) => s.totalItems());
   const clearCart = useCartStore((s) => s.clearCart);
   const [searchQuery, setSearchQuery] = useState("");
+  const [mobileQuery, setMobileQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
   const debouncedSearch = useDebounce(searchQuery, 400);
-  const { data: searchResults } = useSearchProducts(debouncedSearch);
+  const debouncedMobile = useDebounce(mobileQuery, 400);
+  const desktopSearchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (
+        desktopSearchRef.current &&
+        !desktopSearchRef.current.contains(e.target as Node)
+      ) {
+        setSearchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const navLinks = [
     { href: "/products", label: "Бүтээгдэхүүн" },
     { href: "/products?category=", label: "Ангилал" },
   ];
+
+  const showDesktop = searchOpen && debouncedSearch.length >= 2;
+  const showMobile = debouncedMobile.length >= 2;
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b">
@@ -58,51 +168,40 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop search */}
-        <div className="hidden md:flex flex-1 max-w-md relative">
-          <input
-            type="text"
-            placeholder="Бараа хайх..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-2 text-sm border rounded-lg bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
-          />
-          {debouncedSearch.length >= 2 &&
-            searchResults &&
-            searchResults.length > 0 && (
-              <div className="absolute top-full mt-1 left-0 right-0 bg-background border rounded-lg shadow-lg z-50 overflow-hidden">
-                {(
-                  searchResults as Array<{
-                    _id: string;
-                    name: string;
-                    slug: string;
-                    imageKeys: string[];
-                    price: number;
-                  }>
-                ).map((p) => (
-                  <Link
-                    key={p._id}
-                    href={`/products/${p.slug}`}
-                    onClick={() => setSearchQuery("")}
-                    className="flex items-center gap-3 px-3 py-2 hover:bg-muted transition-colors"
-                  >
-                    <div className="relative w-8 h-8 rounded overflow-hidden bg-muted flex-shrink-0">
-                      <Image
-                        src={getImageUrl(p.imageKeys?.[0] ?? "", { width: 64 })}
-                        alt={p.name}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm truncate">{p.name}</p>
-                      <p className="text-xs text-primary">
-                        {formatPrice(p.price)}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+        <div
+          ref={desktopSearchRef}
+          className="hidden md:flex flex-1 max-w-md relative"
+        >
+          <div className="relative w-full">
+            <input
+              type="text"
+              placeholder="Бараа хайх..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setSearchOpen(true);
+              }}
+              onFocus={() => setSearchOpen(true)}
+              className="w-full px-4 py-2 pr-8 text-sm border rounded-lg bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            {searchQuery.length > 0 && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
             )}
+          </div>
+          {showDesktop && (
+            <div className="absolute top-full mt-1  -left-4 min-w-[480px] bg-background border rounded-xl shadow-xl z-50 max-h-[420px] overflow-y-auto">
+              <SearchDropdown
+                q={debouncedSearch}
+                onSelect={() => setSearchQuery("")}
+                cols={3}
+              />
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2 ml-auto">
@@ -161,7 +260,10 @@ export default function Navbar() {
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => { clearCart(); signOut({ callbackUrl: "/" }); }}
+                  onClick={() => {
+                    clearCart();
+                    signOut({ callbackUrl: "/" });
+                  }}
                   className="text-destructive"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
@@ -190,7 +292,10 @@ export default function Navbar() {
 
       {/* Mobile nav sheet */}
       <Sheet open={isNavOpen} onOpenChange={setNavOpen}>
-        <SheetContent side="left" className="w-72">
+        <SheetContent
+          side="left"
+          className="w-72 flex flex-col overflow-hidden"
+        >
           <SheetHeader>
             <SheetTitle>
               <Link
@@ -205,11 +310,35 @@ export default function Navbar() {
 
           {/* Mobile search */}
           <div className="mt-4">
-            <input
-              type="text"
-              placeholder="Бараа хайх..."
-              className="w-full px-3 py-2 text-sm border rounded-lg bg-muted/50 focus:outline-none"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Бараа хайх..."
+                value={mobileQuery}
+                onChange={(e) => setMobileQuery(e.target.value)}
+                className="w-full px-3 py-2 pr-8 text-sm border rounded-lg bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+              {mobileQuery.length > 0 && (
+                <button
+                  onClick={() => setMobileQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            {showMobile && (
+              <div className="mt-1 border rounded-xl bg-background max-h-[360px] overflow-y-auto">
+                <SearchDropdown
+                  q={debouncedMobile}
+                  onSelect={() => {
+                    setMobileQuery("");
+                    setNavOpen(false);
+                  }}
+                  cols={2}
+                />
+              </div>
+            )}
           </div>
 
           <nav className="mt-6 space-y-1">

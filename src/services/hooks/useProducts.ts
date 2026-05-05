@@ -6,7 +6,6 @@ import {
   fetchCategories,
   fetchProduct,
   fetchProducts,
-  searchProducts,
   updateProduct,
   type ProductListParams,
 } from "@/services/api/products";
@@ -84,10 +83,16 @@ export function useCategories() {
   });
 }
 
-export function useSearchProducts(q: string) {
-  return useQuery({
-    queryKey: queryKeys.search.results(q),
-    queryFn: () => searchProducts(q),
+export function useInfiniteSearchProducts(q: string) {
+  return useInfiniteQuery({
+    queryKey: queryKeys.search.infinite(q),
+    queryFn: ({ pageParam }: { pageParam: number }) =>
+      fetchProducts({ q, page: pageParam, limit: 9 }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      const loaded = allPages.reduce((sum, p) => sum + p.products.length, 0);
+      return loaded < lastPage.total ? allPages.length + 1 : undefined;
+    },
     enabled: q.length >= 2,
     staleTime: 30 * 1000,
   });

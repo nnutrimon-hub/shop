@@ -37,6 +37,15 @@ function hasDescendantSelected(
   );
 }
 
+function findPath(nodes: CategoryNode[], targetId: string): CategoryNode[] {
+  for (const node of nodes) {
+    if (node._id === targetId) return [node];
+    const sub = findPath(node.children, targetId);
+    if (sub.length) return [node, ...sub];
+  }
+  return [];
+}
+
 interface TreeNodeProps {
   node: CategoryNode;
   selectedId: string;
@@ -166,6 +175,14 @@ export default function ProductsPage() {
 
   const allCats = categoriesFlat as Category[];
   const selectedCat = allCats.find((c) => c._id === selectedCategoryId);
+  const selectedPath = useMemo(
+    () => (selectedCategoryId ? findPath(tree, selectedCategoryId) : []),
+    [tree, selectedCategoryId],
+  );
+  const selectedPathIds = useMemo(
+    () => new Set(selectedPath.map((n) => n._id)),
+    [selectedPath],
+  );
 
   const pageTitle =
     saleParam === "true"
@@ -236,26 +253,49 @@ export default function ProductsPage() {
         </div>
 
         {/* Mobile category chips */}
-        <div className="md:hidden mb-4 flex flex-wrap gap-2">
-          <Badge
-            variant={!selectedCategoryId ? "default" : "outline"}
-            className="cursor-pointer"
-            onClick={() => setCategory("")}
-          >
-            Бүгд
-          </Badge>
-          {allCats
-            .filter((c) => !c.parent)
-            .map((cat) => (
+        <div className="md:hidden mb-4 space-y-2">
+          {/* Root level */}
+          <div className="flex flex-wrap gap-2">
+            <Badge
+              variant={!selectedCategoryId ? "default" : "outline"}
+              className="cursor-pointer"
+              onClick={() => setCategory("")}
+            >
+              Бүгд
+            </Badge>
+            {tree.map((node) => (
               <Badge
-                key={cat._id}
-                variant={selectedCategoryId === cat._id ? "default" : "outline"}
+                key={node._id}
+                variant={selectedPathIds.has(node._id) ? "default" : "outline"}
                 className="cursor-pointer"
-                onClick={() => setCategory(cat._id)}
+                onClick={() => setCategory(node._id)}
               >
-                {cat.name}
+                {node.name}
               </Badge>
             ))}
+          </div>
+
+          {/* Sub levels — one row per depth */}
+          {selectedPath.map((node, depth) =>
+            node.children.length > 0 ? (
+              <div
+                key={node._id}
+                className="flex flex-wrap gap-2 border-l-2 border-primary/30"
+                style={{ paddingLeft: `${(depth + 1) * 12}px` }}
+              >
+                {node.children.map((child) => (
+                  <Badge
+                    key={child._id}
+                    variant={selectedPathIds.has(child._id) ? "default" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => setCategory(child._id)}
+                  >
+                    {child.name}
+                  </Badge>
+                ))}
+              </div>
+            ) : null,
+          )}
         </div>
 
         {/* Search */}

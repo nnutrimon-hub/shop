@@ -6,6 +6,10 @@ export const queryKeys = {
     detail: (slug: string) =>
       [...queryKeys.products.all, "detail", slug] as const,
   },
+  search: {
+    all: ["search"] as const,
+    infinite: (q: string) => [...queryKeys.search.all, "infinite", q] as const,
+  },
   categories: {
     all: ["categories"] as const,
     list: () => [...queryKeys.categories.all, "list"] as const,
@@ -30,10 +34,6 @@ export const queryKeys = {
   deliveryZones: {
     all: ["delivery-zones"] as const,
     list: () => [...queryKeys.deliveryZones.all, "list"] as const,
-  },
-  search: {
-    all: ["search"] as const,
-    results: (q: string) => [...queryKeys.search.all, q] as const,
   },
   admin: {
     products: (q: string) => ["admin", "products", q] as const,

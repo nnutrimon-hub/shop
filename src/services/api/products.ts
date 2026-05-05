@@ -83,8 +83,3 @@ export async function fetchAdminCategories(page: number, q?: string, limit = 30)
   }>(await fetch(`${API_ENDPOINTS.categories.list}?${sp.toString()}`));
 }
 
-export async function searchProducts(q: string) {
-  return handleResponse<Record<string, unknown>[]>(
-    await fetch(`${API_ENDPOINTS.search}?q=${encodeURIComponent(q)}`),
-  );
-}
