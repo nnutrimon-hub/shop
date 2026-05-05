@@ -1,16 +1,15 @@
 "use client";
-import { useState } from "react";
-import { signIn } from "next-auth/react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { signIn } from "next-auth/react";
+import Link from "next/link";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 
 const LoginSchema = z.object({
   email: z.string().email("И-мэйл буруу байна"),
@@ -20,25 +19,9 @@ const LoginSchema = z.object({
 type LoginForm = z.infer<typeof LoginSchema>;
 
 export default function LoginPage() {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const handleFacebookLogin = async () => {
-    const result = await signIn("facebook", { redirect: false, callbackUrl: "/" });
-    if (!result?.url) return;
-    const w = 500, h = 600;
-    const popup = window.open(
-      result.url,
-      "facebook-login",
-      `width=${w},height=${h},left=${Math.round((screen.width - w) / 2)},top=${Math.round((screen.height - h) / 2)},scrollbars=yes`
-    );
-    const timer = setInterval(() => {
-      if (!popup || popup.closed) {
-        clearInterval(timer);
-        router.refresh();
-      }
-    }, 800);
-  };
+  const handleFacebookLogin = () => signIn("facebook", { callbackUrl: "/" });
 
   const {
     register,
@@ -59,8 +42,7 @@ export default function LoginPage() {
       toast.error("И-мэйл эсвэл нууц үг буруу байна");
     } else {
       toast.success("Амжилттай нэвтэрлээ");
-      router.push("/");
-      router.refresh();
+      window.location.href = "/";
     }
   };
 
@@ -71,7 +53,10 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold">Нэвтрэх</h1>
           <p className="text-sm text-muted-foreground">
             Бүртгэлгүй юу?{" "}
-            <Link href="/auth/register" className="text-primary hover:underline">
+            <Link
+              href="/auth/register"
+              className="text-primary hover:underline"
+            >
               Бүртгүүлэх
             </Link>
           </p>
@@ -124,7 +109,9 @@ export default function LoginPage() {
               {...register("password")}
             />
             {errors.password && (
-              <p className="text-xs text-destructive">{errors.password.message}</p>
+              <p className="text-xs text-destructive">
+                {errors.password.message}
+              </p>
             )}
           </div>
 
