@@ -1,9 +1,6 @@
 "use client";
-import { Suspense, useCallback, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -11,14 +8,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useInfiniteAdminOrders, useUpdateOrderStatus } from "@/services/hooks/useOrders";
-import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import { cn, formatDate, formatPrice } from "@/lib/utils";
+import {
+  useInfiniteAdminOrders,
+  useUpdateOrderStatus,
+} from "@/services/hooks/useOrders";
 import { ORDER_STATUS_LABELS, type OrderStatus } from "@/types";
-import { formatPrice, formatDate } from "@/lib/utils";
-import { ShoppingBag, Loader2, Search } from "lucide-react";
+import { Loader2, Search, ShoppingBag } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { Suspense, useCallback, useEffect, useState } from "react";
 
 const STATUS_LIST = [
   "awaiting_payment",
@@ -97,24 +98,28 @@ function AdminOrdersContent() {
         <div>
           <h1 className="text-2xl font-bold">Захиалга удирдах</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {debouncedQ || status ? `${orders.length} / ${total} олдлоо` : `Нийт ${total} захиалга`}
+            {debouncedQ || status
+              ? `${orders.length} / ${total} олдлоо`
+              : `Нийт ${total} захиалга`}
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="relative">
+        <div className="flex items-center gap-2 flex-wrap w-full md:justify-between">
+          <div className="relative w-full md:w-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Захиалга, нэрээр хайх..."
               value={inputQ}
               onChange={(e) => setInputQ(e.target.value)}
-              className="pl-9 w-52"
+              className="pl-9 md:w-52 w-full"
             />
           </div>
           <Select
             value={status || "all"}
-            onValueChange={(v) => setParam("status", v === "all" ? "" : (v ?? ""))}
+            onValueChange={(v) =>
+              setParam("status", v === "all" ? "" : (v ?? ""))
+            }
           >
-            <SelectTrigger className="w-44">
+            <SelectTrigger className="md:w-44 w-full">
               <SelectValue placeholder="Бүх төлөв" />
             </SelectTrigger>
             <SelectContent>
@@ -140,7 +145,9 @@ function AdminOrdersContent() {
         <div className="flex flex-col items-center justify-center py-20 gap-3 text-muted-foreground border-2 border-dashed rounded-2xl">
           <ShoppingBag className="w-14 h-14 opacity-20" />
           <p className="font-medium">
-            {q || status ? "Хайлтын үр дүн олдсонгүй" : "Захиалга байхгүй байна"}
+            {q || status
+              ? "Хайлтын үр дүн олдсонгүй"
+              : "Захиалга байхгүй байна"}
           </p>
         </div>
       ) : (
@@ -171,40 +178,59 @@ function AdminOrdersContent() {
               </thead>
               <tbody className="divide-y">
                 {orders.map((order) => (
-                  <tr key={order._id} className="hover:bg-muted/20 transition-colors">
+                  <tr
+                    key={order._id}
+                    className="hover:bg-muted/20 transition-colors"
+                  >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <Badge
                           className={cn(
                             "text-[10px] border font-medium px-2 py-0.5",
-                            STATUS_COLORS[order.status] ?? "bg-muted text-muted-foreground border-border",
+                            STATUS_COLORS[order.status] ??
+                              "bg-muted text-muted-foreground border-border",
                           )}
                         >
                           {ORDER_STATUS_LABELS[order.status] ?? order.status}
                         </Badge>
                       </div>
-                      <p className="text-sm font-semibold mt-1">{order.orderId}</p>
+                      <p className="text-sm font-semibold mt-1">
+                        {order.orderId}
+                      </p>
                     </td>
                     <td className="px-4 py-3">
-                      <p className="text-sm font-medium">{order.recipientName}</p>
-                      <p className="text-xs text-muted-foreground">{order.phone}</p>
+                      <p className="text-sm font-medium">
+                        {order.recipientName}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {order.phone}
+                      </p>
                     </td>
                     <td className="px-4 py-3 hidden md:table-cell">
-                      <p className="text-sm text-muted-foreground">{order.district}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {order.district}
+                      </p>
                     </td>
                     <td className="px-4 py-3 hidden sm:table-cell">
-                      <p className="text-xs text-muted-foreground">{formatDate(order.createdAt)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDate(order.createdAt)}
+                      </p>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <p className="text-sm font-bold text-primary">
-                        {formatPrice(order.totalAmount + (order.deliveryFee ?? 0))}
+                        {formatPrice(
+                          order.totalAmount + (order.deliveryFee ?? 0),
+                        )}
                       </p>
                     </td>
                     <td className="px-4 py-3">
                       <Select
                         value={order.status}
                         onValueChange={(v) =>
-                          updateStatus.mutate({ id: order._id, status: v ?? order.status })
+                          updateStatus.mutate({
+                            id: order._id,
+                            status: v ?? order.status,
+                          })
                         }
                       >
                         <SelectTrigger className="w-full h-8 text-xs">

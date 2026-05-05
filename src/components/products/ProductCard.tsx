@@ -30,7 +30,7 @@ export default function ProductCard({ product }: Props) {
   const { addItem } = useCartStore();
   const { setCartOpen } = useUIStore();
   const [hovered, setHovered] = useState(false);
-  const [qty, setQty] = useState(1);
+  // const [qty, setQty] = useState(1);
 
   const images = product.imageKeys ?? [];
   const canSwap = images.length >= 2;
@@ -55,7 +55,7 @@ export default function ProductCard({ product }: Props) {
       name: product.name,
       imageKey: images[0] ?? "",
       price: displayPrice,
-      quantity: qty,
+      quantity: 1,
       stock: product.stock,
     });
     setCartOpen(true);

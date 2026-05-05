@@ -1,7 +1,6 @@
 "use client";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -98,16 +97,18 @@ function AdminUsersContent() {
         <div>
           <h1 className="text-2xl font-bold">Хэрэглэгч удирдах</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {debouncedQ ? `${users.length} / ${total} олдлоо` : `Нийт ${total} хэрэглэгч`}
+            {debouncedQ
+              ? `${users.length} / ${total} олдлоо`
+              : `Нийт ${total} хэрэглэгч`}
           </p>
         </div>
-        <div className="relative">
+        <div className="relative w-full md:w-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Нэр, имэйлээр хайх..."
             value={inputQ}
             onChange={(e) => setInputQ(e.target.value)}
-            className="pl-9 w-52"
+            className="pl-9 md:w-52 w-full"
           />
         </div>
       </div>
@@ -158,7 +159,9 @@ function AdminUsersContent() {
                       </Avatar>
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">{u.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{u.email}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {u.email}
+                        </p>
                       </div>
                     </div>
                   </td>
@@ -168,14 +171,19 @@ function AdminUsersContent() {
                     </Badge>
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell">
-                    <p className="text-xs text-muted-foreground">{formatDate(u.createdAt)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDate(u.createdAt)}
+                    </p>
                   </td>
                   <td className="px-4 py-3 text-right">
                     {isSuperAdmin ? (
                       <Select
                         value={u.role}
                         onValueChange={(role) =>
-                          updateRole.mutate({ id: u._id, role: role as UserRole })
+                          updateRole.mutate({
+                            id: u._id,
+                            role: role as UserRole,
+                          })
                         }
                       >
                         <SelectTrigger className="w-36 h-8 text-xs ml-auto">
@@ -193,7 +201,8 @@ function AdminUsersContent() {
                       <Badge
                         className={cn(
                           "text-xs border font-medium",
-                          ROLE_COLORS[u.role] ?? "bg-muted text-muted-foreground border-border",
+                          ROLE_COLORS[u.role] ??
+                            "bg-muted text-muted-foreground border-border",
                         )}
                       >
                         {USER_ROLE_LABELS[u.role] ?? u.role}

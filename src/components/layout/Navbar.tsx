@@ -131,12 +131,17 @@ export default function Navbar() {
   const { toggleCart } = useUIStore();
   const totalItems = useCartStore((s) => s.totalItems());
   const clearCart = useCartStore((s) => s.clearCart);
+  const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileQuery, setMobileQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const debouncedSearch = useDebounce(searchQuery, 400);
   const debouncedMobile = useDebounce(mobileQuery, 400);
   const desktopSearchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -153,7 +158,7 @@ export default function Navbar() {
 
   const navLinks = [
     { href: "/products", label: "Бүтээгдэхүүн" },
-    { href: "/products?category=", label: "Ангилал" },
+    // { href: "/products?category=", label: "Ангилал" },
   ];
 
   const showDesktop = searchOpen && debouncedSearch.length >= 2;
@@ -214,7 +219,7 @@ export default function Navbar() {
             aria-label="Сагс"
           >
             <ShoppingCart className="w-5 h-5" />
-            {totalItems > 0 && (
+            {mounted && totalItems > 0 && (
               <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
                 {totalItems > 99 ? "99+" : totalItems}
               </Badge>
@@ -310,7 +315,7 @@ export default function Navbar() {
 
           {/* Mobile search */}
           <div className="mt-4">
-            <div className="relative">
+            <div className="relative px-2">
               <input
                 type="text"
                 placeholder="Бараа хайх..."
@@ -321,7 +326,7 @@ export default function Navbar() {
               {mobileQuery.length > 0 && (
                 <button
                   onClick={() => setMobileQuery("")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors px-2"
                 >
                   <X className="w-4 h-4" />
                 </button>

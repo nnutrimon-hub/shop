@@ -54,7 +54,7 @@ export default async function ProductDetailPage({ params }: Props) {
             {p.imageKeys?.length > 1 ? (
               <ImageGallery imageKeys={p.imageKeys} name={p.name} />
             ) : (
-              <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted">
+              <div className="relative aspect-square max-w-md rounded-2xl overflow-hidden bg-muted">
                 {coverKey ? (
                   <img
                     src={getImageUrl(coverKey, { width: 700 })}
@@ -112,7 +112,9 @@ export default async function ProductDetailPage({ params }: Props) {
             {p.barcode && (
               <p className="text-sm text-muted-foreground">
                 Бүтээгдэхүүний код:{" "}
-                <span className="font-semibold text-foreground">{p.barcode}</span>
+                <span className="font-semibold text-foreground">
+                  {p.barcode}
+                </span>
               </p>
             )}
 

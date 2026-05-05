@@ -21,21 +21,21 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/use-debounce";
-import { useRole } from "@/hooks/use-role";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import { useRole } from "@/hooks/use-role";
 import { getImageUrl } from "@/lib/cloudinary";
 import { formatPrice, slugify } from "@/lib/utils";
 import { useCategories } from "@/services/hooks/useCategories";
 import {
-  useInfiniteAdminProducts,
   useCreateProduct,
   useDeleteProduct,
+  useInfiniteAdminProducts,
   useUpdateProduct,
 } from "@/services/hooks/useProducts";
 import { Loader2, Package, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useRef, useState, useCallback, useEffect } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 interface VariantRow {
@@ -92,7 +92,10 @@ function AdminProductsContent() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ProductForm>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const pickerRef = useRef<MultiImagePickerRef>(null);
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
@@ -130,7 +133,9 @@ function AdminProductsContent() {
     setDialogOpen(true);
   };
 
-  const categoryIdFromProduct = (cat: (typeof allProducts)[0]["category"]): string => {
+  const categoryIdFromProduct = (
+    cat: (typeof allProducts)[0]["category"],
+  ): string => {
     if (!cat) return "";
     if (typeof cat === "string") return cat;
     return String(cat._id);
@@ -175,7 +180,8 @@ function AdminProductsContent() {
     setSubmitting(true);
     try {
       const newKeys = (await pickerRef.current?.uploadPending()) ?? [];
-      const existingKeys = pickerRef.current?.getExistingKeys() ?? form.imageKeys;
+      const existingKeys =
+        pickerRef.current?.getExistingKeys() ?? form.imageKeys;
       const imageKeys = [...existingKeys, ...newKeys];
 
       const payload = {
@@ -194,7 +200,11 @@ function AdminProductsContent() {
         isFeatured: form.isFeatured,
         variants: form.variants
           .filter((v) => v.label.trim() && Number(v.price) > 0)
-          .map((v, i) => ({ label: v.label.trim(), price: Number(v.price), order: i })),
+          .map((v, i) => ({
+            label: v.label.trim(),
+            price: Number(v.price),
+            order: i,
+          })),
         slug: slugify(form.name) + "-" + Date.now(),
       };
 
@@ -208,7 +218,8 @@ function AdminProductsContent() {
     }
   };
 
-  const isPending = submitting || createProduct.isPending || updateProduct.isPending;
+  const isPending =
+    submitting || createProduct.isPending || updateProduct.isPending;
 
   return (
     <div>
@@ -217,17 +228,19 @@ function AdminProductsContent() {
         <div>
           <h1 className="text-2xl font-bold">Бараа удирдах</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {debouncedQ ? `${allProducts.length} / ${total} олдлоо` : `${total} бараа`}
+            {debouncedQ
+              ? `${allProducts.length} / ${total} олдлоо`
+              : `${total} бараа`}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col md:flex-row gap-2 w-full md:justify-between">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Бараа хайх..."
               value={inputQ}
               onChange={(e) => setInputQ(e.target.value)}
-              className="pl-9 w-52"
+              className="pl-9 md:w-52 w-full"
             />
           </div>
           {isAdmin && (
@@ -291,13 +304,17 @@ function AdminProductsContent() {
                       {p.imageKeys.length} зураг
                     </Badge>
                   )}
-                  {p.salePrice != null && p.salePrice > 0 && p.salePrice < p.price && (
-                    <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
-                      -{Math.round((1 - p.salePrice / p.price) * 100)}%
-                    </div>
-                  )}
+                  {p.salePrice != null &&
+                    p.salePrice > 0 &&
+                    p.salePrice < p.price && (
+                      <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                        -{Math.round((1 - p.salePrice / p.price) * 100)}%
+                      </div>
+                    )}
                   {p.isFeatured && (
-                    <div className="absolute bottom-2 left-2 text-[10px]">⭐</div>
+                    <div className="absolute bottom-2 left-2 text-[10px]">
+                      ⭐
+                    </div>
                   )}
                   {p.stock === 0 && (
                     <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
@@ -309,23 +326,35 @@ function AdminProductsContent() {
                 </div>
                 <div className="p-3 space-y-2">
                   <div>
-                    <p className="font-medium text-sm line-clamp-2 leading-snug">{p.name}</p>
+                    <p className="font-medium text-sm line-clamp-2 leading-snug">
+                      {p.name}
+                    </p>
                     {p.category && (
-                      <p className="text-[11px] text-muted-foreground mt-0.5">{p.category.name}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {p.category.name}
+                      </p>
                     )}
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
                       {p.salePrice != null && p.salePrice > 0 ? (
                         <div>
-                          <p className="text-primary font-bold text-sm">{formatPrice(p.salePrice)}</p>
-                          <p className="text-[10px] text-muted-foreground line-through">{formatPrice(p.price)}</p>
+                          <p className="text-primary font-bold text-sm">
+                            {formatPrice(p.salePrice)}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground line-through">
+                            {formatPrice(p.price)}
+                          </p>
                         </div>
                       ) : (
-                        <p className="text-primary font-bold text-sm">{formatPrice(p.price)}</p>
+                        <p className="text-primary font-bold text-sm">
+                          {formatPrice(p.price)}
+                        </p>
                       )}
                     </div>
-                    <p className={`text-xs font-medium ${p.stock > 0 ? "text-muted-foreground" : "text-destructive"}`}>
+                    <p
+                      className={`text-xs font-medium ${p.stock > 0 ? "text-muted-foreground" : "text-destructive"}`}
+                    >
                       {p.stock} ш
                     </p>
                   </div>
@@ -344,7 +373,9 @@ function AdminProductsContent() {
                         variant="outline"
                         size="sm"
                         className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => setConfirmDelete({ id: p._id, name: p.name })}
+                        onClick={() =>
+                          setConfirmDelete({ id: p._id, name: p.name })
+                        }
                       >
                         <Trash2 className="w-3 h-3" />
                       </Button>
@@ -366,13 +397,21 @@ function AdminProductsContent() {
       )}
 
       {/* Delete confirmation dialog */}
-      <Dialog open={!!confirmDelete} onOpenChange={(open) => { if (!open) setConfirmDelete(null); }}>
+      <Dialog
+        open={!!confirmDelete}
+        onOpenChange={(open) => {
+          if (!open) setConfirmDelete(null);
+        }}
+      >
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Бараа устгах</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">&ldquo;{confirmDelete?.name}&rdquo;</span> барааг устгахдаа итгэлтэй байна уу?
+            <span className="font-medium text-foreground">
+              &ldquo;{confirmDelete?.name}&rdquo;
+            </span>{" "}
+            барааг устгахдаа итгэлтэй байна уу?
           </p>
           <div className="flex gap-2 pt-2">
             <Button
@@ -395,7 +434,9 @@ function AdminProductsContent() {
                 });
               }}
             >
-              {deleteProduct.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {deleteProduct.isPending && (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              )}
               Тийм, устга
             </Button>
           </div>
@@ -413,228 +454,296 @@ function AdminProductsContent() {
 
           <form onSubmit={handleSubmit} className="mt-2">
             <fieldset disabled={isPending} className="border-0 p-0 m-0 min-w-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* ── Left: Images ── */}
-              <div className="space-y-3">
-                <div>
-                  <Label className="text-sm font-semibold">Зурагнууд</Label>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Хамгийн ихдээ 5 зураг. ⭐ товчлуур дарж гол зургаа сонгоно уу.
-                  </p>
-                </div>
-                <MultiImagePicker ref={pickerRef} currentKeys={form.imageKeys} maxImages={5} />
-              </div>
-
-              {/* ── Right: Form fields ── */}
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="name">
-                    Барааны нэр <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="name"
-                    required
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    placeholder="Барааны нэр оруулна уу"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* ── Left: Images ── */}
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-sm font-semibold">Зурагнууд</Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Хамгийн ихдээ 5 зураг. ⭐ товчлуур дарж гол зургаа сонгоно
+                      уу.
+                    </p>
+                  </div>
+                  <MultiImagePicker
+                    ref={pickerRef}
+                    currentKeys={form.imageKeys}
+                    maxImages={5}
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                {/* ── Right: Form fields ── */}
+                <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="brand">Брэнд</Label>
-                    <Input
-                      id="brand"
-                      value={form.brand}
-                      onChange={(e) => setForm({ ...form, brand: e.target.value })}
-                      placeholder="KEWPIE"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="barcode">Бүтээгдэхүүний код</Label>
-                    <Input
-                      id="barcode"
-                      value={form.barcode}
-                      onChange={(e) => setForm({ ...form, barcode: e.target.value })}
-                      placeholder="4901577000010"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="description">Тайлбар</Label>
-                  <textarea
-                    id="description"
-                    rows={4}
-                    value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    placeholder="Барааны дэлгэрэнгүй тайлбар..."
-                    className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="price">
-                      Үндсэн үнэ (₮) <span className="text-destructive">*</span>
+                    <Label htmlFor="name">
+                      Барааны нэр <span className="text-destructive">*</span>
                     </Label>
                     <Input
-                      id="price"
+                      id="name"
+                      required
+                      value={form.name}
+                      onChange={(e) =>
+                        setForm({ ...form, name: e.target.value })
+                      }
+                      placeholder="Барааны нэр оруулна уу"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="brand">Брэнд</Label>
+                      <Input
+                        id="brand"
+                        value={form.brand}
+                        onChange={(e) =>
+                          setForm({ ...form, brand: e.target.value })
+                        }
+                        placeholder="KEWPIE"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="barcode">Бүтээгдэхүүний код</Label>
+                      <Input
+                        id="barcode"
+                        value={form.barcode}
+                        onChange={(e) =>
+                          setForm({ ...form, barcode: e.target.value })
+                        }
+                        placeholder="4901577000010"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="description">Тайлбар</Label>
+                    <textarea
+                      id="description"
+                      rows={4}
+                      value={form.description}
+                      onChange={(e) =>
+                        setForm({ ...form, description: e.target.value })
+                      }
+                      placeholder="Барааны дэлгэрэнгүй тайлбар..."
+                      className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="price">
+                        Үндсэн үнэ (₮){" "}
+                        <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        required
+                        min="0"
+                        value={form.price}
+                        onChange={(e) =>
+                          setForm({ ...form, price: e.target.value })
+                        }
+                        placeholder="0"
+                      />
+                      {form.price && Number(form.price) > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          {formatPrice(Number(form.price))}
+                        </p>
+                      )}
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="salePrice">Хямдарсан үнэ (₮)</Label>
+                      <Input
+                        id="salePrice"
+                        type="number"
+                        min="0"
+                        max={
+                          form.price && Number(form.price) > 0
+                            ? String(Number(form.price) - 1)
+                            : undefined
+                        }
+                        value={form.salePrice}
+                        onChange={(e) =>
+                          setForm({ ...form, salePrice: e.target.value })
+                        }
+                        placeholder="Хоосон = хямдрал байхгүй"
+                      />
+                      {form.salePrice &&
+                        Number(form.salePrice) > 0 &&
+                        form.price &&
+                        Number(form.price) > 0 &&
+                        (Number(form.salePrice) >= Number(form.price) ? (
+                          <p className="text-xs text-destructive font-medium">
+                            Хямдарсан үнэ үндсэн үнээс бага байх ёстой
+                          </p>
+                        ) : (
+                          <p className="text-xs text-red-500 font-medium">
+                            -
+                            {Math.round(
+                              (1 -
+                                Number(form.salePrice) / Number(form.price)) *
+                                100,
+                            )}
+                            % хямдрал
+                          </p>
+                        ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="stock">
+                      Үлдэгдэл <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="stock"
                       type="number"
                       required
                       min="0"
-                      value={form.price}
-                      onChange={(e) => setForm({ ...form, price: e.target.value })}
+                      value={form.stock}
+                      onChange={(e) =>
+                        setForm({ ...form, stock: e.target.value })
+                      }
                       placeholder="0"
                     />
-                    {form.price && Number(form.price) > 0 && (
-                      <p className="text-xs text-muted-foreground">{formatPrice(Number(form.price))}</p>
+                    {form.stock && Number(form.stock) > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        {Number(form.stock).toLocaleString()} ширхэг
+                      </p>
                     )}
                   </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="salePrice">Хямдарсан үнэ (₮)</Label>
-                    <Input
-                      id="salePrice"
-                      type="number"
-                      min="0"
-                      max={form.price && Number(form.price) > 0 ? String(Number(form.price) - 1) : undefined}
-                      value={form.salePrice}
-                      onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
-                      placeholder="Хоосон = хямдрал байхгүй"
+
+                  <label className="flex items-center gap-3 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={form.isFeatured}
+                      onChange={(e) =>
+                        setForm({ ...form, isFeatured: e.target.checked })
+                      }
+                      className="w-4 h-4 rounded border-gray-300 text-primary"
                     />
-                    {form.salePrice && Number(form.salePrice) > 0 && form.price && Number(form.price) > 0 && (
-                      Number(form.salePrice) >= Number(form.price) ? (
-                        <p className="text-xs text-destructive font-medium">
-                          Хямдарсан үнэ үндсэн үнээс бага байх ёстой
-                        </p>
-                      ) : (
-                        <p className="text-xs text-red-500 font-medium">
-                          -{Math.round((1 - Number(form.salePrice) / Number(form.price)) * 100)}% хямдрал
-                        </p>
-                      )
-                    )}
-                  </div>
-                </div>
+                    <span className="text-sm font-medium">Онцлох бараа ⭐</span>
+                    <span className="text-xs text-muted-foreground">
+                      (Нүүр хуудсанд онцлох хэсэгт харагдана)
+                    </span>
+                  </label>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="stock">
-                    Үлдэгдэл <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="stock"
-                    type="number"
-                    required
-                    min="0"
-                    value={form.stock}
-                    onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                    placeholder="0"
-                  />
-                  {form.stock && Number(form.stock) > 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      {Number(form.stock).toLocaleString()} ширхэг
-                    </p>
-                  )}
-                </div>
-
-                <label className="flex items-center gap-3 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={form.isFeatured}
-                    onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })}
-                    className="w-4 h-4 rounded border-gray-300 text-primary"
-                  />
-                  <span className="text-sm font-medium">Онцлох бараа ⭐</span>
-                  <span className="text-xs text-muted-foreground">
-                    (Нүүр хуудсанд онцлох хэсэгт харагдана)
-                  </span>
-                </label>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label>Хэмжээ / Variants</Label>
-                    <button
-                      type="button"
-                      onClick={() => setForm({ ...form, variants: [...form.variants, { label: "", price: "" }] })}
-                      className="text-xs text-primary hover:underline flex items-center gap-1"
-                    >
-                      <Plus className="w-3 h-3" />
-                      Нэмэх
-                    </button>
-                  </div>
-                  {form.variants.length === 0 && (
-                    <p className="text-xs text-muted-foreground">Жишээ: 1кг, 450гр, 300гр</p>
-                  )}
-                  {form.variants.map((v, i) => (
-                    <div key={i} className="flex gap-2 items-center">
-                      <Input
-                        placeholder="Хэмжээ (1кг, 450гр...)"
-                        value={v.label}
-                        onChange={(e) => {
-                          const updated = [...form.variants];
-                          updated[i] = { ...updated[i], label: e.target.value };
-                          setForm({ ...form, variants: updated });
-                        }}
-                        className="flex-1"
-                      />
-                      <Input
-                        type="number"
-                        placeholder="Үнэ ₮"
-                        min="0"
-                        value={v.price}
-                        onChange={(e) => {
-                          const updated = [...form.variants];
-                          updated[i] = { ...updated[i], price: e.target.value };
-                          setForm({ ...form, variants: updated });
-                        }}
-                        className="w-28"
-                      />
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Хэмжээ / Variants</Label>
                       <button
                         type="button"
-                        onClick={() => setForm({ ...form, variants: form.variants.filter((_, j) => j !== i) })}
-                        className="text-destructive hover:text-destructive/80 p-1"
+                        onClick={() =>
+                          setForm({
+                            ...form,
+                            variants: [
+                              ...form.variants,
+                              { label: "", price: "" },
+                            ],
+                          })
+                        }
+                        className="text-xs text-primary hover:underline flex items-center gap-1"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Plus className="w-3 h-3" />
+                        Нэмэх
                       </button>
                     </div>
-                  ))}
-                </div>
+                    {form.variants.length === 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Жишээ: 1кг, 450гр, 300гр
+                      </p>
+                    )}
+                    {form.variants.map((v, i) => (
+                      <div key={i} className="flex gap-2 items-center">
+                        <Input
+                          placeholder="Хэмжээ (1кг, 450гр...)"
+                          value={v.label}
+                          onChange={(e) => {
+                            const updated = [...form.variants];
+                            updated[i] = {
+                              ...updated[i],
+                              label: e.target.value,
+                            };
+                            setForm({ ...form, variants: updated });
+                          }}
+                          className="flex-1"
+                        />
+                        <Input
+                          type="number"
+                          placeholder="Үнэ ₮"
+                          min="0"
+                          value={v.price}
+                          onChange={(e) => {
+                            const updated = [...form.variants];
+                            updated[i] = {
+                              ...updated[i],
+                              price: e.target.value,
+                            };
+                            setForm({ ...form, variants: updated });
+                          }}
+                          className="w-28"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setForm({
+                              ...form,
+                              variants: form.variants.filter((_, j) => j !== i),
+                            })
+                          }
+                          className="text-destructive hover:text-destructive/80 p-1"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
 
-                <div className="space-y-1.5">
-                  <Label>
-                    Ангилал <span className="text-destructive">*</span>
-                  </Label>
-                  <Select
-                    value={form.category}
-                    onValueChange={(v) => setForm({ ...form, category: v ?? "" })}
-                  >
-                    <SelectTrigger className="w-full min-w-0">
-                      <SelectValue placeholder="Ангилал сонгох">
-                        {(value) => {
-                          if (value == null || value === "") return null;
-                          const list = categories as Array<{ _id: string; name: string }>;
-                          const found = list.find((c) => String(c._id) === String(value));
-                          return found?.name ?? String(value);
-                        }}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(categories as Array<{ _id: string; name: string }>).map((c) => (
-                        <SelectItem key={c._id} value={String(c._id)}>
-                          {c.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {(categories as Array<{ _id: string; name: string }>).length === 0 && (
-                    <p className="text-xs text-amber-600">
-                      Ангилал байхгүй байна.{" "}
-                      <a href="/admin/categories" className="underline">Ангилал нэмэх</a>
-                    </p>
-                  )}
+                  <div className="space-y-1.5">
+                    <Label>
+                      Ангилал <span className="text-destructive">*</span>
+                    </Label>
+                    <Select
+                      value={form.category}
+                      onValueChange={(v) =>
+                        setForm({ ...form, category: v ?? "" })
+                      }
+                    >
+                      <SelectTrigger className="w-full min-w-0">
+                        <SelectValue placeholder="Ангилал сонгох">
+                          {(value) => {
+                            if (value == null || value === "") return null;
+                            const list = categories as Array<{
+                              _id: string;
+                              name: string;
+                            }>;
+                            const found = list.find(
+                              (c) => String(c._id) === String(value),
+                            );
+                            return found?.name ?? String(value);
+                          }}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(
+                          categories as Array<{ _id: string; name: string }>
+                        ).map((c) => (
+                          <SelectItem key={c._id} value={String(c._id)}>
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {(categories as Array<{ _id: string; name: string }>)
+                      .length === 0 && (
+                      <p className="text-xs text-amber-600">
+                        Ангилал байхгүй байна.{" "}
+                        <a href="/admin/categories" className="underline">
+                          Ангилал нэмэх
+                        </a>
+                      </p>
+                    )}
+                  </div>
                 </div>
-
               </div>
-            </div>
             </fieldset>
 
             <div className="flex gap-2 pt-4 border-t mt-6">

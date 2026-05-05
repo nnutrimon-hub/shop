@@ -16,6 +16,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useDebounce } from "@/hooks/use-debounce";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import {
   useCategories,
   useCreateCategory,
@@ -24,9 +26,15 @@ import {
   type Category,
 } from "@/services/hooks/useCategories";
 import { useInfiniteAdminCategories } from "@/services/hooks/useProducts";
-import { useDebounce } from "@/hooks/use-debounce";
-import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
-import { ChevronRight, Loader2, Pencil, Plus, Search, Tag, Trash2 } from "lucide-react";
+import {
+  ChevronRight,
+  Loader2,
+  Pencil,
+  Plus,
+  Search,
+  Tag,
+  Trash2,
+} from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
@@ -85,7 +93,10 @@ function AdminCategoriesContent() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<CategoryForm>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   // Load all categories for tree building (sidebar/parent selector)
   const { data: allCatsFlat = [] } = useCategories();
@@ -101,13 +112,17 @@ function AdminCategoriesContent() {
   );
 
   // Build tree from all cats (for indentation display) or use flat when searching
-  const loadedCats = (data?.pages.flatMap((p) => p.categories) ?? []) as unknown as Category[];
+  const loadedCats = (data?.pages.flatMap((p) => p.categories) ??
+    []) as unknown as Category[];
   const total = data?.pages[0]?.total ?? 0;
 
   const flatList = useMemo(() => {
     if (debouncedQ) {
       // Searching: show flat results with depth=0
-      return loadedCats.map((c) => ({ node: { ...c, children: [] } as CategoryNode, depth: 0 }));
+      return loadedCats.map((c) => ({
+        node: { ...c, children: [] } as CategoryNode,
+        depth: 0,
+      }));
     }
     // No search: build tree from all loaded cats for correct indentation
     const tree = buildTree(loadedCats);
@@ -148,7 +163,8 @@ function AdminCategoriesContent() {
     }
   };
 
-  const isPending = submitting || createCategory.isPending || updateCategory.isPending;
+  const isPending =
+    submitting || createCategory.isPending || updateCategory.isPending;
 
   const getDescendantIds = (id: string): Set<string> => {
     const result = new Set<string>([id]);
@@ -176,17 +192,19 @@ function AdminCategoriesContent() {
         <div>
           <h1 className="text-2xl font-bold">Ангилал удирдах</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {debouncedQ ? `${loadedCats.length} / ${total} олдлоо` : `${allCats.length} ангилал`}
+            {debouncedQ
+              ? `${loadedCats.length} / ${total} олдлоо`
+              : `${allCats.length} ангилал`}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
+        <div className="flex flex-col md:flex-row gap-2 w-full md:justify-between">
+          <div className="relative w-full md:w-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Нэрээр хайх..."
               value={inputQ}
               onChange={(e) => setInputQ(e.target.value)}
-              className="pl-9 w-52"
+              className="pl-9 md:w-52 w-full"
             />
           </div>
           <Button onClick={openCreate}>
@@ -236,7 +254,10 @@ function AdminCategoriesContent() {
                   ? allCats.find((c) => c._id === String(node.parent))
                   : null;
                 return (
-                  <tr key={node._id} className="hover:bg-muted/20 transition-colors">
+                  <tr
+                    key={node._id}
+                    className="hover:bg-muted/20 transition-colors"
+                  >
                     <td className="px-4 py-3">
                       <div
                         className="flex items-center gap-1.5"
@@ -255,7 +276,9 @@ function AdminCategoriesContent() {
                     </td>
                     <td className="px-4 py-3 hidden sm:table-cell">
                       {parentCat ? (
-                        <span className="text-sm text-muted-foreground">{parentCat.name}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {parentCat.name}
+                        </span>
                       ) : (
                         <span className="text-sm text-muted-foreground italic opacity-40">
                           Үндсэн ангилал
@@ -277,7 +300,9 @@ function AdminCategoriesContent() {
                           variant="outline"
                           size="sm"
                           className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => setConfirmDelete({ id: node._id, name: node.name })}
+                          onClick={() =>
+                            setConfirmDelete({ id: node._id, name: node.name })
+                          }
                           disabled={deleteCategory.isPending}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -301,13 +326,21 @@ function AdminCategoriesContent() {
       )}
 
       {/* Delete confirmation dialog */}
-      <Dialog open={!!confirmDelete} onOpenChange={(open) => { if (!open) setConfirmDelete(null); }}>
+      <Dialog
+        open={!!confirmDelete}
+        onOpenChange={(open) => {
+          if (!open) setConfirmDelete(null);
+        }}
+      >
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Ангилал устгах</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">&ldquo;{confirmDelete?.name}&rdquo;</span> ангилалыг устгахдаа итгэлтэй байна уу?
+            <span className="font-medium text-foreground">
+              &ldquo;{confirmDelete?.name}&rdquo;
+            </span>{" "}
+            ангилалыг устгахдаа итгэлтэй байна уу?
           </p>
           <div className="flex gap-2 pt-2">
             <Button
@@ -330,7 +363,9 @@ function AdminCategoriesContent() {
                 });
               }}
             >
-              {deleteCategory.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {deleteCategory.isPending && (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              )}
               Тийм, устга
             </Button>
           </div>
@@ -347,7 +382,10 @@ function AdminCategoriesContent() {
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4 mt-2">
-            <fieldset disabled={isPending} className="space-y-4 border-0 p-0 m-0 min-w-0">
+            <fieldset
+              disabled={isPending}
+              className="space-y-4 border-0 p-0 m-0 min-w-0"
+            >
               <div className="space-y-1.5">
                 <Label htmlFor="cat-name">
                   Нэр <span className="text-destructive">*</span>
@@ -366,20 +404,28 @@ function AdminCategoriesContent() {
                 <Select
                   value={form.parentId || "__none__"}
                   onValueChange={(v) =>
-                    setForm({ ...form, parentId: v === "__none__" ? "" : (v ?? "") })
+                    setForm({
+                      ...form,
+                      parentId: v === "__none__" ? "" : (v ?? ""),
+                    })
                   }
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue>
                       {form.parentId ? (
-                        allCats.find((c) => c._id === form.parentId)?.name ?? form.parentId
+                        (allCats.find((c) => c._id === form.parentId)?.name ??
+                        form.parentId)
                       ) : (
-                        <span className="text-muted-foreground">Үндсэн ангилал (эцэг байхгүй)</span>
+                        <span className="text-muted-foreground">
+                          Үндсэн ангилал (эцэг байхгүй)
+                        </span>
                       )}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__none__">Үндсэн ангилал (эцэг байхгүй)</SelectItem>
+                    <SelectItem value="__none__">
+                      Үндсэн ангилал (эцэг байхгүй)
+                    </SelectItem>
                     {parentOptions.map((c) => (
                       <SelectItem key={c._id} value={c._id}>
                         {c.name}
@@ -388,7 +434,8 @@ function AdminCategoriesContent() {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  Хэрвээ энэ ангилал өөр ангилалын дэд ангилал бол эцгийг нь сонгоно
+                  Хэрвээ энэ ангилал өөр ангилалын дэд ангилал бол эцгийг нь
+                  сонгоно
                 </p>
               </div>
             </fieldset>
