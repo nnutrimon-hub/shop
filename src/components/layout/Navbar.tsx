@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/sheet";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
-import { getImageUrl } from "@/lib/cloudinary";
+import { getImageUrl } from "@/lib/storage";
 import { formatPrice } from "@/lib/utils";
 import { useInfiniteSearchProducts } from "@/services/hooks/useProducts";
 import { useCartStore } from "@/store/cartStore";

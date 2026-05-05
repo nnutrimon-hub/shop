@@ -1,4 +1,4 @@
-import { getImageUrl } from "@/lib/cloudinary";
+import { getImageUrl } from "@/lib/storage";
 import { connectDB } from "@/lib/mongoose";
 import { formatPrice } from "@/lib/utils";
 import Product from "@/models/Product";

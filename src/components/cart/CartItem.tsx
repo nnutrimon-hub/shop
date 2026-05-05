@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { getImageUrl } from "@/lib/cloudinary";
+import { getImageUrl } from "@/lib/storage";
 import { formatPrice } from "@/lib/utils";
 import { useCartStore, type CartItem as CartItemType } from "@/store/cartStore";
 import { Minus, Package, Plus, Trash2 } from "lucide-react";

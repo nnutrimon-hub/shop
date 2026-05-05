@@ -23,7 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { useRole } from "@/hooks/use-role";
-import { getImageUrl } from "@/lib/cloudinary";
+import { getImageUrl } from "@/lib/storage";
 import { formatPrice, slugify } from "@/lib/utils";
 import { useCategories } from "@/services/hooks/useCategories";
 import {

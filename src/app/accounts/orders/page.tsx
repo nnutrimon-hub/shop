@@ -7,7 +7,7 @@ import { useOrders } from "@/services/hooks/useOrders";
 import { ORDER_STATUS_LABELS, type OrderStatus } from "@/types";
 import { formatPrice, formatDate } from "@/lib/utils";
 import Image from "next/image";
-import { getImageUrl } from "@/lib/cloudinary";
+import { getImageUrl } from "@/lib/storage";
 
 const STATUS_TABS: { value: string; label: string }[] = [
   { value: "all", label: "Бүгд" },

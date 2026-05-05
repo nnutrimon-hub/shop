@@ -23,7 +23,7 @@ export const API_ENDPOINTS = {
       list: "/api/admin/users",
       detail: (id: string) => `/api/admin/users/${id}`,
     },
-    cloudinarySign: "/api/admin/cloudinary/sign",
+    imageUpload: "/api/admin/r2/upload",
   },
   payment: {
     qpay: "/api/payment/qpay",

@@ -1,5 +1,5 @@
 "use client";
-import { getImageUrl } from "@/lib/cloudinary";
+import { getImageUrl } from "@/lib/storage";
 import { compressImage } from "@/lib/compressImage";
 import { cn } from "@/lib/utils";
 import { ImageIcon, Loader2, Star, Upload, X } from "lucide-react";
@@ -61,45 +61,24 @@ const MultiImagePicker = forwardRef<MultiImagePickerRef, Props>(
         if (pending.length === 0) return [];
         setUploading(true);
         try {
-          // Sign all images in parallel
-          const signs = await Promise.all(
-            pending.map(() =>
-              fetch("/api/admin/cloudinary/sign", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ folder: "products" }),
-              }).then((r) => {
-                if (!r.ok) throw new Error("Гарын үсэг авахад алдаа гарлаа");
-                return r.json();
-              }),
-            ),
-          );
-
-          // Compress and upload all images in parallel
           const results = await Promise.all(
-            pending.map(async (item, i) => {
-              const { timestamp, signature, api_key, cloud_name, folder } =
-                signs[i];
+            pending.map(async (item) => {
               const compressed = await compressImage(item.file);
               const fd = new FormData();
               fd.append("file", compressed);
-              fd.append("timestamp", String(timestamp));
-              fd.append("signature", signature);
-              fd.append("api_key", api_key);
-              fd.append("folder", folder);
-              return fetch(
-                `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
-                { method: "POST", body: fd },
-              ).then((r) => {
-                if (!r.ok) throw new Error("Зураг байршуулахад алдаа гарлаа");
-                return r.json() as Promise<{ public_id: string }>;
+              fd.append("folder", "products");
+              const r = await fetch("/api/admin/r2/upload", {
+                method: "POST",
+                body: fd,
               });
+              if (!r.ok) throw new Error("Зураг байршуулахад алдаа гарлаа");
+              return r.json() as Promise<{ key: string }>;
             }),
           );
 
           pending.forEach((item) => URL.revokeObjectURL(item.preview));
           setPending([]);
-          return results.map((r) => r.public_id);
+          return results.map((r) => r.key);
         } catch (err: unknown) {
           toast.error(err instanceof Error ? err.message : "Upload алдаа");
           return [];

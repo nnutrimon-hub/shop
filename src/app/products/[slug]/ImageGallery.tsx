@@ -1,5 +1,5 @@
 "use client";
-import { getImageUrl } from "@/lib/cloudinary";
+import { getImageUrl } from "@/lib/storage";
 import Image from "next/image";
 import { useState } from "react";
 

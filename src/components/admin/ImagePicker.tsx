@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { getImageUrl } from "@/lib/cloudinary";
+import { getImageUrl } from "@/lib/storage";
 import { compressImage } from "@/lib/compressImage";
 import { cn } from "@/lib/utils";
 import { Loader2, Upload, X } from "lucide-react";
@@ -41,37 +41,23 @@ const ImagePicker = forwardRef<ImagePickerRef, Props>(
 
         setUploading(true);
         try {
-          const signRes = await fetch("/api/admin/cloudinary/sign", {
+          const fd = new FormData();
+          fd.append("file", pendingFile);
+          fd.append("folder", "products");
+
+          const res = await fetch("/api/admin/r2/upload", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ folder: "products" }),
+            body: fd,
           });
-          if (!signRes.ok) throw new Error("Гарын үсэг авахад алдаа гарлаа");
+          if (!res.ok) throw new Error("Зураг байршуулахад алдаа гарлаа");
 
-          const { timestamp, signature, api_key, cloud_name, folder } =
-            await signRes.json();
+          const { key } = await res.json();
 
-          const formData = new FormData();
-          formData.append("file", pendingFile);
-          formData.append("timestamp", String(timestamp));
-          formData.append("signature", signature);
-          formData.append("api_key", api_key);
-          formData.append("folder", folder);
-
-          const cloudRes = await fetch(
-            `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
-            { method: "POST", body: formData }
-          );
-          if (!cloudRes.ok) throw new Error("Зураг байршуулахад алдаа гарлаа");
-
-          const result = await cloudRes.json();
-
-          // Clear pending state after successful upload
           URL.revokeObjectURL(localPreview!);
           setPendingFile(null);
           setLocalPreview(null);
 
-          return result.public_id as string;
+          return key as string;
         } catch (err: unknown) {
           const msg = err instanceof Error ? err.message : "Алдаа гарлаа";
           toast.error(msg);

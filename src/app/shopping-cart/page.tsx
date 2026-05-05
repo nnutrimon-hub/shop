@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { getImageUrl } from "@/lib/cloudinary";
+import { getImageUrl } from "@/lib/storage";
 import { formatPrice } from "@/lib/utils";
 import { useCreateOrder, useDeliveryZones } from "@/services/hooks/useOrders";
 import { useCartStore } from "@/store/cartStore";

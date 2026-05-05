@@ -15,9 +15,9 @@ const securityHeaders = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://res.cloudinary.com https://lh3.googleusercontent.com https://graph.facebook.com",
+      "img-src 'self' data: blob: https://pub-c53771c3ea2a4ec8b65525d3d5520249.r2.dev https://lh3.googleusercontent.com https://graph.facebook.com",
       "font-src 'self'",
-      "connect-src 'self' https://api.cloudinary.com",
+      "connect-src 'self'",
       "frame-ancestors 'none'",
     ].join("; "),
   },
@@ -31,7 +31,7 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "res.cloudinary.com" },
+      { protocol: "https", hostname: "pub-c53771c3ea2a4ec8b65525d3d5520249.r2.dev" },
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
       { protocol: "https", hostname: "graph.facebook.com" },
     ],
