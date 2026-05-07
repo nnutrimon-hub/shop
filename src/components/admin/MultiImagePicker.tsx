@@ -1,6 +1,7 @@
 "use client";
 import { getImageUrl } from "@/lib/storage";
 import { compressImage } from "@/lib/compressImage";
+import { API_ENDPOINTS } from "@/services/api/endpoints";
 import { cn } from "@/lib/utils";
 import { ImageIcon, Loader2, Star, Upload, X } from "lucide-react";
 import Image from "next/image";
@@ -67,7 +68,7 @@ const MultiImagePicker = forwardRef<MultiImagePickerRef, Props>(
               const fd = new FormData();
               fd.append("file", compressed);
               fd.append("folder", "products");
-              const r = await fetch("/api/admin/r2/upload", {
+              const r = await fetch(API_ENDPOINTS.admin.imageUpload, {
                 method: "POST",
                 body: fd,
               });

@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongoose";
+import { deleteFiles } from "@/lib/storage-server";
 import Product from "@/models/Product";
+import { NextRequest, NextResponse } from "next/server";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -53,6 +54,22 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     const existing = await Product.findById(id);
     if (!existing)
       return NextResponse.json({ error: "Бараа олдсонгүй" }, { status: 404 });
+    //image delete
+
+    const oldKeys = (existing.imageKeys ?? [])
+      .map((k) => String(k).trim())
+      .filter(Boolean);
+
+    let removedKeys: string[] = [];
+    if (Array.isArray(body.imageKeys)) {
+      const newKeys = body.imageKeys
+        .map((k: unknown) => String(k).trim())
+        .filter(Boolean);
+      body.imageKeys = newKeys;
+
+      const newSet = new Set(newKeys);
+      removedKeys = oldKeys.filter((k) => !newSet.has(k));
+    }
 
     if (body.price && body.price !== existing.price) {
       body.$push = {
@@ -61,6 +78,11 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     }
 
     const updated = await Product.findByIdAndUpdate(id, body, { new: true });
+    if (removedKeys.length > 0) {
+      deleteFiles(removedKeys).catch((err: unknown) => {
+        console.error("[R2 delete error]", err);
+      });
+    }
     return NextResponse.json(updated);
   } catch {
     return NextResponse.json({ error: "Алдаа гарлаа" }, { status: 500 });

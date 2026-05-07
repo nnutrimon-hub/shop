@@ -1,4 +1,9 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectCommand,
+  DeleteObjectsCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 
 const client = new S3Client({
   region: "auto",
@@ -25,4 +30,36 @@ export async function uploadFile(
     })
   );
   return key;
+}
+
+export async function deleteFile(key: string): Promise<void> {
+  const k = key.trim();
+  if (!k) return;
+  await client.send(
+    new DeleteObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME!,
+      Key: k,
+    })
+  );
+}
+
+export async function deleteFiles(keys: string[]): Promise<void> {
+  const cleaned = Array.from(
+    new Set(keys.map((k) => k.trim()).filter(Boolean))
+  );
+  if (cleaned.length === 0) return;
+  if (cleaned.length === 1) {
+    await deleteFile(cleaned[0]);
+    return;
+  }
+
+  await client.send(
+    new DeleteObjectsCommand({
+      Bucket: process.env.R2_BUCKET_NAME!,
+      Delete: {
+        Objects: cleaned.map((Key) => ({ Key })),
+        Quiet: true,
+      },
+    })
+  );
 }

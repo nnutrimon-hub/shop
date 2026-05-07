@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { getImageUrl } from "@/lib/storage";
 import { compressImage } from "@/lib/compressImage";
+import { API_ENDPOINTS } from "@/services/api/endpoints";
 import { cn } from "@/lib/utils";
 import { Loader2, Upload, X } from "lucide-react";
 import Image from "next/image";
@@ -45,7 +46,7 @@ const ImagePicker = forwardRef<ImagePickerRef, Props>(
           fd.append("file", pendingFile);
           fd.append("folder", "products");
 
-          const res = await fetch("/api/admin/r2/upload", {
+          const res = await fetch(API_ENDPOINTS.admin.imageUpload, {
             method: "POST",
             body: fd,
           });
