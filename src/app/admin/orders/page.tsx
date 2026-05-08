@@ -1,4 +1,6 @@
 "use client";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -6,7 +8,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -22,6 +23,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 
 const STATUS_LIST = [
+  "pending",
   "awaiting_payment",
   "paid",
   "processing",
@@ -85,6 +87,7 @@ function AdminOrdersContent() {
     recipientName: string;
     phone: string;
     district: string;
+    address?: string;
     createdAt: string;
     userId?: { name: string; email: string };
   }>;
@@ -120,7 +123,9 @@ function AdminOrdersContent() {
             }
           >
             <SelectTrigger className="md:w-44 w-full">
-              <SelectValue placeholder="Бүх төлөв" />
+              {status
+                ? (ORDER_STATUS_LABELS[status as OrderStatus] ?? status)
+                : "Бүх төлөв"}
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Бүх төлөв</SelectItem>
@@ -174,6 +179,9 @@ function AdminOrdersContent() {
                   <th className="px-4 py-3 w-52">
                     <span className="sr-only">Төлөв</span>
                   </th>
+                  <th className="px-4 py-3 w-32">
+                    <span className="sr-only">Дэлгэрэнгүй</span>
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -181,6 +189,15 @@ function AdminOrdersContent() {
                   <tr
                     key={order._id}
                     className="hover:bg-muted/20 transition-colors"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => router.push(`/admin/orders/${order._id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        router.push(`/admin/orders/${order._id}`);
+                      }
+                    }}
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
@@ -207,13 +224,16 @@ function AdminOrdersContent() {
                       </p>
                     </td>
                     <td className="px-4 py-3 hidden md:table-cell">
-                      <p className="text-sm text-muted-foreground">
-                        {order.district}
-                      </p>
+                      <div className="text-sm text-muted-foreground">
+                        <p className="line-clamp-1">{order.district}</p>
+                        {order.address ? (
+                          <p className="text-xs line-clamp-1">{order.address}</p>
+                        ) : null}
+                      </div>
                     </td>
                     <td className="px-4 py-3 hidden sm:table-cell">
                       <p className="text-xs text-muted-foreground">
-                        {formatDate(order.createdAt)}
+                        {formatDate(order.createdAt, "YYYY.MM.DD HH:mm")}
                       </p>
                     </td>
                     <td className="px-4 py-3 text-right">
@@ -233,8 +253,12 @@ function AdminOrdersContent() {
                           })
                         }
                       >
-                        <SelectTrigger className="w-full h-8 text-xs">
-                          <SelectValue />
+                        <SelectTrigger
+                          className="w-full h-8 text-xs"
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                        >
+                          {ORDER_STATUS_LABELS[order.status] ?? order.status}
                         </SelectTrigger>
                         <SelectContent>
                           {STATUS_LIST.map((s) => (
@@ -244,6 +268,21 @@ function AdminOrdersContent() {
                           ))}
                         </SelectContent>
                       </Select>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                      >
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-full text-xs"
+                          render={<Link href={`/admin/orders/${order._id}`} />}
+                        >
+                          Дэлгэрэнгүй
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

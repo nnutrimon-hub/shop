@@ -29,3 +29,11 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   delivered: "Хүргэгдсэн",
   cancelled: "Цуцлагдсан",
 };
+
+export type OrderPaymentMethod = "qpay" | "cod";
+
+export const ORDER_PAYMENT_METHOD_LABELS: Record<OrderPaymentMethod, string> =
+  {
+    qpay: "QPay",
+    cod: "Бараа хүлээж аваад төлөх",
+  };

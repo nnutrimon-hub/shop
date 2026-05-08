@@ -6,6 +6,7 @@ export interface OrderNotificationParams {
   district: string;
   address: string;
   items: { name: string; quantity: number }[];
+  paymentMethod?: "qpay" | "cod";
 }
 
 export async function sendOrderNotification(
@@ -23,10 +24,15 @@ export async function sendOrderNotification(
   const text = [
     `📦 Шинэ захиалга: #${params.orderId}`,
     `👤 Хэрэглэгч: ${params.customerName} / ${params.phone}`,
+    params.paymentMethod
+      ? `💳 Төлбөр: ${params.paymentMethod === "qpay" ? "QPay" : "Бараа хүлээж аваад төлөх"}`
+      : null,
     `💰 Нийт дүн: ${new Intl.NumberFormat("mn-MN").format(params.totalAmount)}₮`,
     `📍 Байршил: ${params.district}, ${params.address}`,
     `📝 Бараанууд: ${itemList}`,
-  ].join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
     method: "POST",

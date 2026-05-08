@@ -47,13 +47,25 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     // Sanitize user inputs
-    const recipientName = DOMPurify.sanitize(body.recipientName ?? "", { ALLOWED_TAGS: [] });
+    const recipientName = DOMPurify.sanitize(body.recipientName ?? "", {
+      ALLOWED_TAGS: [],
+    });
     const address = DOMPurify.sanitize(body.address ?? "", { ALLOWED_TAGS: [] });
     const phone = DOMPurify.sanitize(body.phone ?? "", { ALLOWED_TAGS: [] });
     const district = DOMPurify.sanitize(body.district ?? "", { ALLOWED_TAGS: [] });
+    const paymentMethodRaw = DOMPurify.sanitize(body.paymentMethod ?? "", {
+      ALLOWED_TAGS: [],
+    });
+    const paymentMethod =
+      paymentMethodRaw === "cod" || paymentMethodRaw === "qpay"
+        ? paymentMethodRaw
+        : "qpay";
 
     if (!recipientName || !address || !phone || !district || !body.items?.length) {
-      return NextResponse.json({ error: "Шаардлагатай талбарууд дутуу байна" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Шаардлагатай талбарууд дутуу байна" },
+        { status: 400 },
+      );
     }
 
     // Validate stock & build order items
@@ -61,9 +73,15 @@ export async function POST(req: NextRequest) {
     let totalAmount = 0;
 
     for (const item of body.items) {
-      const product = await Product.findById(item.productId)
+      const product = (await Product.findById(item.productId)
         .select("name imageKey price stock")
-        .lean() as { _id: { toString(): string }; name: string; imageKey: string; price: number; stock: number } | null;
+        .lean()) as {
+        _id: { toString(): string };
+        name: string;
+        imageKey: string;
+        price: number;
+        stock: number;
+      } | null;
 
       if (!product) {
         return NextResponse.json({ error: `Бараа олдсонгүй: ${item.productId}` }, { status: 400 });
@@ -95,7 +113,8 @@ export async function POST(req: NextRequest) {
       items: orderItems,
       totalAmount,
       deliveryFee,
-      status: "awaiting_payment",
+      status: paymentMethod === "qpay" ? "awaiting_payment" : "pending",
+      paymentMethod,
       district,
       address,
       phone,
@@ -109,21 +128,23 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Create QPay invoice
+    // Create QPay invoice (only when QPay is selected)
     let qpayUrl = null;
-    try {
-      const invoice = await createQPayInvoice({
-        orderId,
-        amount: totalAmount + deliveryFee,
-        callbackUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/payment/qpay/callback`,
-      });
-      await Order.findByIdAndUpdate(order._id, {
-        qpayInvoiceId: invoice.invoice_id,
-        qpayShortUrl: invoice.qPay_shortUrl,
-      });
-      qpayUrl = invoice.qPay_shortUrl;
-    } catch {
-      // QPay failure doesn't block order creation
+    if (paymentMethod === "qpay") {
+      try {
+        const invoice = await createQPayInvoice({
+          orderId,
+          amount: totalAmount + deliveryFee,
+          callbackUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/payment/qpay/callback`,
+        });
+        await Order.findByIdAndUpdate(order._id, {
+          qpayInvoiceId: invoice.invoice_id,
+          qpayShortUrl: invoice.qPay_shortUrl,
+        });
+        qpayUrl = invoice.qPay_shortUrl;
+      } catch {
+        // QPay failure doesn't block order creation
+      }
     }
 
     // Telegram notification
@@ -136,6 +157,7 @@ export async function POST(req: NextRequest) {
         district,
         address,
         items: orderItems.map((i) => ({ name: i.name, quantity: i.quantity })),
+        paymentMethod,
       });
     } catch {
       // Telegram failure is non-critical

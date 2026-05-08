@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document, Model, Types } from "mongoose";
-import type { OrderStatus } from "@/types";
+import type { OrderPaymentMethod, OrderStatus } from "@/types";
 
 interface OrderItem {
   product: Types.ObjectId;
@@ -15,6 +15,7 @@ export interface IOrder extends Document {
   items: OrderItem[];
   totalAmount: number;
   status: OrderStatus;
+  paymentMethod: OrderPaymentMethod;
   deliveryFee: number;
   district: string;
   address: string;
@@ -53,6 +54,11 @@ const OrderSchema = new Schema<IOrder>(
         "cancelled",
       ],
       default: "pending",
+    },
+    paymentMethod: {
+      type: String,
+      enum: ["qpay", "cod"],
+      default: "qpay",
     },
     deliveryFee: { type: Number, default: 0 },
     district: { type: String, required: true },

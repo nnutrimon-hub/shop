@@ -11,6 +11,7 @@ import { getImageUrl } from "@/lib/storage";
 
 const STATUS_TABS: { value: string; label: string }[] = [
   { value: "all", label: "Бүгд" },
+  { value: "pending", label: "Хүлээгдэж байна" },
   { value: "awaiting_payment", label: "Төлбөр хүлээж байна" },
   { value: "paid", label: "Төлбөр хийгдсэн" },
   { value: "processing", label: "Боловсруулж байна" },
@@ -87,12 +88,16 @@ export default function OrdersPage() {
                                 key={i}
                                 className="relative w-10 h-10 rounded overflow-hidden bg-muted"
                               >
-                                <Image
-                                  src={getImageUrl(item.imageKey, { width: 80 })}
-                                  alt={item.name}
-                                  fill
-                                  className="object-cover"
-                                />
+                                {item.imageKey ? (
+                                  <Image
+                                    src={getImageUrl(item.imageKey, {
+                                      width: 80,
+                                    })}
+                                    alt={item.name}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                ) : null}
                               </div>
                             ))}
                             {order.items.length > 3 && (

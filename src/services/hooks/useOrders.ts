@@ -75,7 +75,14 @@ export function useUpdateOrderStatus(onSuccess?: () => void) {
       updateOrderStatus(id, status),
     onSuccess: async () => {
       toast.success("Захиалгын төлөв шинэчлэгдлээ");
-      await qc.invalidateQueries({ queryKey: queryKeys.orders.all });
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: queryKeys.orders.all }),
+        qc.invalidateQueries({ queryKey: queryKeys.orders.adminList() }),
+        qc.invalidateQueries({
+          predicate: (q) =>
+            q.queryKey[0] === "admin" && q.queryKey[1] === "orders",
+        }),
+      ]);
       onSuccess?.();
     },
     onError: (err: Error) => toast.error(err.message),

@@ -15,6 +15,7 @@ export interface CreateOrderInput {
   district: string;
   address: string;
   deliveryFee: number;
+  paymentMethod: "qpay" | "cod";
 }
 
 export async function createOrder(data: CreateOrderInput) {

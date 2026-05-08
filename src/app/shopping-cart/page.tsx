@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -14,6 +15,7 @@ import { getImageUrl } from "@/lib/storage";
 import { formatPrice } from "@/lib/utils";
 import { useCreateOrder, useDeliveryZones } from "@/services/hooks/useOrders";
 import { useCartStore } from "@/store/cartStore";
+import { ORDER_PAYMENT_METHOD_LABELS } from "@/types";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
@@ -34,6 +36,7 @@ export default function ShoppingCartPage() {
     phone: "",
     district: "",
     address: "",
+    paymentMethod: "qpay" as "qpay" | "cod",
   });
 
   const selectedZone = zones?.find((z) => z.district === form.district);
@@ -75,6 +78,7 @@ export default function ShoppingCartPage() {
       district: form.district,
       address: form.address,
       deliveryFee,
+      paymentMethod: form.paymentMethod,
     });
   };
 
@@ -185,7 +189,7 @@ export default function ShoppingCartPage() {
                 value={form.district}
                 onValueChange={(v) => setForm({ ...form, district: v ?? "" })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Дүүрэг сонгох" />
                 </SelectTrigger>
                 <SelectContent>
@@ -200,13 +204,34 @@ export default function ShoppingCartPage() {
 
             <div className="space-y-2">
               <Label htmlFor="address">Дэлгэрэнгүй хаяг</Label>
-              <Input
+              <Textarea
                 id="address"
                 required
                 value={form.address}
                 onChange={(e) => setForm({ ...form, address: e.target.value })}
-                placeholder="Байр, тоот, ..."
+                placeholder="Жишээ: Баянзүрх дүүрэг, 26-р хороо, 12-р байр, 34 тоот, 2-р орц (код: 1234). Холбогдох хүний дугаар: 99112233"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Төлбөрийн арга</Label>
+              <Select
+                value={form.paymentMethod}
+                onValueChange={(v) =>
+                  setForm({
+                    ...form,
+                    paymentMethod: (v ?? "qpay") as "qpay" | "cod",
+                  })
+                }
+              >
+                <SelectTrigger className="w-full">
+                  {ORDER_PAYMENT_METHOD_LABELS[form.paymentMethod]}
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="qpay">QPay</SelectItem>
+                  <SelectItem value="cod">Бараа хүлээж аваад төлөх</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <Separator />
@@ -233,7 +258,11 @@ export default function ShoppingCartPage() {
               size="lg"
               disabled={isPending}
             >
-              {isPending ? "Захиалж байна..." : "QPay-р төлж захиалах"}
+              {isPending
+                ? "Захиалж байна..."
+                : form.paymentMethod === "qpay"
+                  ? "QPay-р төлж захиалах"
+                  : "Захиалах"}
             </Button>
           </form>
         </div>
