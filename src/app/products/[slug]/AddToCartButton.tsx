@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/store/cartStore";
 import { useUIStore } from "@/store/uiStore";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -23,6 +24,7 @@ export default function AddToCartButton({
 }: Props) {
   const { addItem } = useCartStore();
   const { setCartOpen } = useUIStore();
+  const router = useRouter();
   const [qty, setQty] = useState(1);
 
   const handleAdd = () => {
@@ -40,8 +42,8 @@ export default function AddToCartButton({
       return;
     }
     addItem({ productId, name, imageKey, price, quantity: qty, stock });
-    setCartOpen(true);
-    toast.success("Захиалга үүслээ");
+    setCartOpen(false);
+    router.push("/shopping-cart");
   };
 
   return (
