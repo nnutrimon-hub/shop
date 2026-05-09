@@ -3,10 +3,48 @@ import { connectDB } from "@/lib/mongoose";
 import Order from "@/models/Order";
 import Product from "@/models/Product";
 import { auth } from "@/lib/auth";
+import { csrfCheck } from "@/lib/security";
 import { nextOrderId } from "@/models/Counter";
 import { createQPayInvoice } from "@/lib/qpay";
 import { sendOrderNotification } from "@/lib/telegram";
 import DOMPurify from "isomorphic-dompurify";
+import mongoose from "mongoose";
+import { z } from "zod";
+
+const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, {
+  message: "Барааны ID буруу байна",
+});
+
+const OrderItemSchema = z.object({
+  productId: objectIdSchema,
+  quantity: z
+    .number({ invalid_type_error: "Тоо ширхэг буруу байна" })
+    .int("Тоо ширхэг бүхэл тоо байх ёстой")
+    .positive("Тоо ширхэг 0-ээс их байх ёстой")
+    .max(100, "Нэг бараанаас 100-аас их захиалах боломжгүй"),
+});
+
+const CreateOrderSchema = z.object({
+  recipientName: z.string().min(1, "Хүлээн авагчийн нэр оруулна уу").max(100),
+  phone: z.string().min(6, "Утасны дугаар буруу байна").max(20),
+  district: z.string().min(1, "Дүүрэг сонгоно уу").max(100),
+  address: z.string().min(1, "Хаяг оруулна уу").max(500),
+  paymentMethod: z.enum(["qpay", "cod"]).default("qpay"),
+  deliveryFee: z.number().min(0).max(1_000_000).default(0),
+  items: z.array(OrderItemSchema).min(1, "Сагс хоосон байна").max(50),
+});
+
+type DecrementedItem = { productId: string; quantity: number };
+
+async function rollbackStock(items: DecrementedItem[]) {
+  await Promise.all(
+    items.map((item) =>
+      Product.findByIdAndUpdate(item.productId, {
+        $inc: { stock: item.quantity },
+      })
+    )
+  );
+}
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -37,6 +75,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const csrf = csrfCheck(req);
+  if (csrf) return csrf;
+
   const session = await auth();
   if (!session) {
     return NextResponse.json({ error: "Нэвтэрнэ үү" }, { status: 401 });
@@ -45,23 +86,27 @@ export async function POST(req: NextRequest) {
   try {
     await connectDB();
     const body = await req.json();
+    const parsed = CreateOrderSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.errors[0].message },
+        { status: 400 }
+      );
+    }
+
+    const data = parsed.data;
 
     // Sanitize user inputs
-    const recipientName = DOMPurify.sanitize(body.recipientName ?? "", {
+    const recipientName = DOMPurify.sanitize(data.recipientName, {
       ALLOWED_TAGS: [],
     });
-    const address = DOMPurify.sanitize(body.address ?? "", { ALLOWED_TAGS: [] });
-    const phone = DOMPurify.sanitize(body.phone ?? "", { ALLOWED_TAGS: [] });
-    const district = DOMPurify.sanitize(body.district ?? "", { ALLOWED_TAGS: [] });
-    const paymentMethodRaw = DOMPurify.sanitize(body.paymentMethod ?? "", {
-      ALLOWED_TAGS: [],
-    });
-    const paymentMethod =
-      paymentMethodRaw === "cod" || paymentMethodRaw === "qpay"
-        ? paymentMethodRaw
-        : "qpay";
+    const address = DOMPurify.sanitize(data.address, { ALLOWED_TAGS: [] });
+    const phone = DOMPurify.sanitize(data.phone, { ALLOWED_TAGS: [] });
+    const district = DOMPurify.sanitize(data.district, { ALLOWED_TAGS: [] });
+    const paymentMethod = data.paymentMethod;
 
-    if (!recipientName || !address || !phone || !district || !body.items?.length) {
+    if (!recipientName || !address || !phone || !district) {
       return NextResponse.json(
         { error: "Шаардлагатай талбарууд дутуу байна" },
         { status: 400 },
@@ -82,9 +127,10 @@ export async function POST(req: NextRequest) {
 
     // Validate stock & build order items
     const orderItems = [];
+    const decremented: DecrementedItem[] = [];
     let totalAmount = 0;
 
-    for (const item of body.items) {
+    for (const item of data.items) {
       const product = (await Product.findById(item.productId)
         .select("name imageKey price stock")
         .lean()) as {
@@ -105,6 +151,28 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      const updated = await Product.findOneAndUpdate(
+        mongoose.trusted({
+          _id: item.productId,
+          stock: { $gte: item.quantity },
+        }),
+        { $inc: { stock: -item.quantity } },
+        { new: true }
+      );
+
+      if (!updated) {
+        await rollbackStock(decremented);
+        return NextResponse.json(
+          { error: `"${product.name}" бараа хүрэлцэхгүй байна` },
+          { status: 400 }
+        );
+      }
+
+      decremented.push({
+        productId: item.productId,
+        quantity: item.quantity,
+      });
+
       orderItems.push({
         product: item.productId,
         name: product.name,
@@ -115,29 +183,31 @@ export async function POST(req: NextRequest) {
       totalAmount += product.price * item.quantity;
     }
 
-    const deliveryFee = Number(body.deliveryFee) || 0;
+    const deliveryFee = data.deliveryFee;
     const year = new Date().getFullYear();
     const orderId = await nextOrderId(year);
 
-    const order = await Order.create({
-      orderId,
-      userId: session.user.id,
-      items: orderItems,
-      totalAmount,
-      deliveryFee,
-      status: paymentMethod === "qpay" ? "awaiting_payment" : "pending",
-      paymentMethod,
-      district,
-      address,
-      phone,
-      recipientName,
-    });
-
-    // Decrement stock atomically
-    for (const item of body.items) {
-      await Product.findByIdAndUpdate(item.productId, {
-        $inc: { stock: -item.quantity },
+    let order;
+    try {
+      order = await Order.create({
+        orderId,
+        userId: session.user.id,
+        items: orderItems,
+        totalAmount,
+        deliveryFee,
+        status: paymentMethod === "qpay" ? "awaiting_payment" : "pending",
+        paymentMethod,
+        district,
+        address,
+        phone,
+        recipientName,
       });
+    } catch {
+      await rollbackStock(decremented);
+      return NextResponse.json(
+        { error: "Захиалга үүсгэхэд алдаа гарлаа" },
+        { status: 500 }
+      );
     }
 
     // Create QPay invoice (only when QPay is selected)

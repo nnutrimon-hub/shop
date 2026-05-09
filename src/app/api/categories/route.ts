@@ -1,6 +1,8 @@
 import { connectDB } from "@/lib/mongoose";
+import { csrfCheck } from "@/lib/security";
 import { slugify } from "@/lib/utils";
 import Category from "@/models/Category";
+import DOMPurify from "isomorphic-dompurify";
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -49,6 +51,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const csrf = csrfCheck(req);
+  if (csrf) return csrf;
+
   const { auth } = await import("@/lib/auth");
   const session = await auth();
   if (!session || !["admin", "superadmin"].includes(session.user.role)) {
@@ -59,7 +64,9 @@ export async function POST(req: NextRequest) {
     await connectDB();
     const body = await req.json();
 
-    body.name = ((body.name ?? "") as string).replace(/<[^>]*>/g, "").trim();
+    body.name = DOMPurify.sanitize(String(body.name ?? ""), {
+      ALLOWED_TAGS: [],
+    }).trim();
     if (!body.name) {
       return NextResponse.json(
         { error: "Ангилалын нэр оруулна уу" },

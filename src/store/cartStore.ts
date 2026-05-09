@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { API_ENDPOINTS } from "@/services/api/endpoints";
 
 export interface CartItem {
   productId: string;
@@ -68,7 +69,7 @@ export const useCartStore = create<CartStore>()(
 
       loadFromServer: async () => {
         try {
-          const res = await fetch("/api/cart");
+          const res = await fetch(API_ENDPOINTS.cart.base);
           if (!res.ok) return;
           const data = await res.json();
           const items: CartItem[] = (data.items ?? []).map(

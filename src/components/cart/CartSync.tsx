@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useCartStore } from "@/store/cartStore";
 import { useDebounce } from "@/hooks/use-debounce";
+import { API_ENDPOINTS } from "@/services/api/endpoints";
 
 export default function CartSync() {
   const { status } = useSession();
@@ -36,7 +37,7 @@ export default function CartSync() {
   const debouncedItems = useDebounce(items, 1500);
   useEffect(() => {
     if (status !== "authenticated" || !readyToSyncRef.current || isLoadingRef.current) return;
-    fetch("/api/cart", {
+    fetch(API_ENDPOINTS.cart.base, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ items: debouncedItems }),

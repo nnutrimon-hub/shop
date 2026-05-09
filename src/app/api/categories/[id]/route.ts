@@ -1,12 +1,17 @@
 import { connectDB } from "@/lib/mongoose";
+import { csrfCheck } from "@/lib/security";
 import { slugify } from "@/lib/utils";
 import Category from "@/models/Category";
 import Product from "@/models/Product";
+import DOMPurify from "isomorphic-dompurify";
 import { NextRequest, NextResponse } from "next/server";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function PATCH(req: NextRequest, { params }: Ctx) {
+  const csrf = csrfCheck(req);
+  if (csrf) return csrf;
+
   const { auth } = await import("@/lib/auth");
   const session = await auth();
   if (!session || !["admin", "superadmin"].includes(session.user.role)) {
@@ -19,7 +24,9 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     const body = await req.json();
 
     if (body.name) {
-      body.name = (body.name as string).replace(/<[^>]*>/g, "").trim();
+      body.name = DOMPurify.sanitize(String(body.name), {
+        ALLOWED_TAGS: [],
+      }).trim();
       if (body.name.length > 100) {
         return NextResponse.json(
           { error: "Ангилалын нэр хэт урт байна" },
@@ -51,7 +58,10 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: Ctx) {
+export async function DELETE(req: NextRequest, { params }: Ctx) {
+  const csrf = csrfCheck(req);
+  if (csrf) return csrf;
+
   const { auth } = await import("@/lib/auth");
   const session = await auth();
   if (!session || !["admin", "superadmin"].includes(session.user.role)) {

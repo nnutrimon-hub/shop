@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
@@ -109,9 +110,8 @@ export default function LoginPage() {
 
           <div className="space-y-2">
             <Label htmlFor="password">Нууц үг</Label>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               maxLength={128}
               placeholder="••••••••"
               {...register("password")}

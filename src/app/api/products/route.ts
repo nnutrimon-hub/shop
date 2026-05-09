@@ -1,18 +1,10 @@
 import { connectDB } from "@/lib/mongoose";
 import Category from "@/models/Category";
 import Product from "@/models/Product";
+import { csrfCheck } from "@/lib/security";
 import { slugify } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
-
-function csrfCheck(req: NextRequest): NextResponse | null {
-  const origin = req.headers.get("origin");
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  if (appUrl && origin && origin !== appUrl) {
-    return NextResponse.json({ error: "CSRF шалгалт амжилтгүй" }, { status: 403 });
-  }
-  return null;
-}
 
 /** BFS to collect the given categoryId plus all its descendants */
 async function getDescendantIds(rootId: string): Promise<mongoose.Types.ObjectId[]> {

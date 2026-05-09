@@ -3,8 +3,36 @@ import { connectDB } from "@/lib/mongoose";
 import Cart from "@/models/Cart";
 import Product from "@/models/Product";
 import { auth } from "@/lib/auth";
+import { csrfCheck } from "@/lib/security";
 import mongoose from "mongoose";
 import type { Session } from "next-auth";
+import { z } from "zod";
+
+const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, {
+  message: "Барааны ID буруу байна",
+});
+
+const AddCartItemSchema = z.object({
+  productId: objectIdSchema,
+  quantity: z.number().int().positive().max(100).default(1),
+});
+
+const UpdateCartItemSchema = z.object({
+  productId: objectIdSchema,
+  quantity: z.number().int().min(0).max(100),
+});
+
+const SyncCartItemSchema = z.object({
+  productId: objectIdSchema,
+  name: z.string().min(1).max(200),
+  imageKey: z.string().max(500).default(""),
+  price: z.number().min(0).max(1_000_000_000),
+  quantity: z.number().int().positive().max(100),
+});
+
+const SyncCartSchema = z.object({
+  items: z.array(SyncCartItemSchema).max(100).default([]),
+});
 
 async function getCartFilter(req: NextRequest, session: Session | null) {
   if (session?.user?.id) {
@@ -33,6 +61,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const csrf = csrfCheck(req);
+  if (csrf) return csrf;
+
   try {
     await connectDB();
     const session = await auth();
@@ -41,7 +72,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Зочин ID шаардлагатай" }, { status: 400 });
     }
 
-    const { productId, quantity = 1 } = await req.json();
+    const parsed = AddCartItemSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.errors[0].message },
+        { status: 400 }
+      );
+    }
+    const { productId, quantity } = parsed.data;
 
     const product = await Product.findById(productId).select("name imageKey price stock").lean() as {
       _id: mongoose.Types.ObjectId;
@@ -76,6 +114,12 @@ export async function POST(req: NextRequest) {
         (i) => i.product.toString() === productId
       );
       if (existingIdx >= 0) {
+        if (cart.items[existingIdx].quantity + quantity > product.stock) {
+          return NextResponse.json(
+            { error: "Хүрэлцэхгүй байна" },
+            { status: 400 }
+          );
+        }
         cart.items[existingIdx].quantity += quantity;
       } else {
         cart.items.push({
@@ -96,13 +140,23 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  const csrf = csrfCheck(req);
+  if (csrf) return csrf;
+
   try {
     await connectDB();
     const session = await auth();
     const filter = await getCartFilter(req, session);
     if (!filter) return NextResponse.json({ error: "Зочин ID шаардлагатай" }, { status: 400 });
 
-    const { productId, quantity } = await req.json();
+    const parsed = UpdateCartItemSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.errors[0].message },
+        { status: 400 }
+      );
+    }
+    const { productId, quantity } = parsed.data;
     const cart = await Cart.findOne(filter);
     if (!cart)
       return NextResponse.json({ error: "Сагс олдсонгүй" }, { status: 404 });
@@ -125,20 +179,29 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  const csrf = csrfCheck(req);
+  if (csrf) return csrf;
+
   try {
     const session = await auth();
     if (!session?.user?.id)
       return NextResponse.json({ error: "Нэвтрээгүй" }, { status: 401 });
 
     await connectDB();
-    const { items } = await req.json();
+    const parsed = SyncCartSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.errors[0].message },
+        { status: 400 }
+      );
+    }
 
     const userId = new mongoose.Types.ObjectId(session.user.id);
     await Cart.findOneAndUpdate(
       { userId },
       {
         userId,
-        items: (items ?? []).map((item: { productId: string; name: string; imageKey: string; price: number; quantity: number }) => ({
+        items: parsed.data.items.map((item) => ({
           product: new mongoose.Types.ObjectId(item.productId),
           name: item.name,
           imageKey: item.imageKey,
@@ -157,6 +220,9 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const csrf = csrfCheck(req);
+  if (csrf) return csrf;
+
   try {
     await connectDB();
     const session = await auth();
@@ -167,6 +233,12 @@ export async function DELETE(req: NextRequest) {
     const productId = searchParams.get("productId");
 
     if (productId) {
+      if (!/^[a-f\d]{24}$/i.test(productId)) {
+        return NextResponse.json(
+          { error: "Барааны ID буруу байна" },
+          { status: 400 }
+        );
+      }
       const cart = await Cart.findOne(filter);
       if (cart) {
         cart.items = cart.items.filter((i) => i.product.toString() !== productId);

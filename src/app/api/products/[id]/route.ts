@@ -1,4 +1,5 @@
 import { connectDB } from "@/lib/mongoose";
+import { csrfCheck } from "@/lib/security";
 import { deleteFiles } from "@/lib/storage-server";
 import Product from "@/models/Product";
 import { NextRequest, NextResponse } from "next/server";
@@ -25,6 +26,9 @@ export async function GET(_req: NextRequest, { params }: Ctx) {
 }
 
 export async function PATCH(req: NextRequest, { params }: Ctx) {
+  const csrf = csrfCheck(req);
+  if (csrf) return csrf;
+
   const { auth } = await import("@/lib/auth");
   const session = await auth();
   if (
@@ -114,7 +118,10 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: Ctx) {
+export async function DELETE(req: NextRequest, { params }: Ctx) {
+  const csrf = csrfCheck(req);
+  if (csrf) return csrf;
+
   const { auth } = await import("@/lib/auth");
   const session = await auth();
   if (!session || !["admin", "superadmin"].includes(session.user.role)) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongoose";
+import { csrfCheck } from "@/lib/security";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
 import DOMPurify from "isomorphic-dompurify";
@@ -16,11 +17,16 @@ const RegisterSchema = z.object({
     .max(254, "И-мэйл хэт урт байна"),
   password: z
     .string()
-    .min(6, "Нууц үг хамгийн багадаа 6 тэмдэгт байна")
-    .max(128, "Нууц үг хэт урт байна"),
+    .min(8, "Нууц үг хамгийн багадаа 8 тэмдэгт байна")
+    .max(128, "Нууц үг хэт урт байна")
+    .regex(/[A-Za-z]/, "Нууц үг үсэг агуулсан байх ёстой")
+    .regex(/[0-9]/, "Нууц үг тоо агуулсан байх ёстой"),
 });
 
 export async function POST(req: NextRequest) {
+  const csrf = csrfCheck(req);
+  if (csrf) return csrf;
+
   try {
     await connectDB();
     const body = await req.json();

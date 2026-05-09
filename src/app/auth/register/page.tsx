@@ -9,6 +9,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
+import { useRegister } from "@/services/hooks/useAuth";
 import { toast } from "sonner";
 
 const RegisterSchema = z
@@ -23,8 +25,10 @@ const RegisterSchema = z
       .max(254, "И-мэйл хэт урт байна"),
     password: z
       .string()
-      .min(6, "Нууц үг хамгийн багадаа 6 тэмдэгт")
-      .max(128, "Нууц үг хэт урт байна"),
+      .min(8, "Нууц үг хамгийн багадаа 8 тэмдэгт")
+      .max(128, "Нууц үг хэт урт байна")
+      .regex(/[A-Za-z]/, "Нууц үг үсэг агуулсан байх ёстой")
+      .regex(/[0-9]/, "Нууц үг тоо агуулсан байх ёстой"),
     confirm: z.string().max(128),
   })
   .refine((d) => d.password === d.confirm, {
@@ -37,6 +41,7 @@ type RegisterForm = z.infer<typeof RegisterSchema>;
 export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const { mutateAsync: registerUser } = useRegister();
 
   const {
     register,
@@ -47,34 +52,27 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterForm) => {
     setLoading(true);
     try {
-      const res = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: data.name,
-          email: data.email,
-          password: data.password,
-        }),
+      await registerUser({
+        name: data.name,
+        email: data.email,
+        password: data.password,
       });
 
-      const json = await res.json();
-      if (!res.ok) {
-        toast.error(json.error);
-        return;
-      }
-
       // Auto-login after registration
-      await signIn("credentials", {
+      const res = await signIn("credentials", {
         email: data.email,
         password: data.password,
         redirect: false,
       });
+      if (res?.error) {
+        toast.error("Автоматаар нэвтрэхэд алдаа гарлаа");
+        return;
+      }
 
-      toast.success("Бүртгэл амжилттай!");
       router.push("/");
       router.refresh();
     } catch {
-      toast.error("Алдаа гарлаа");
+      // API алдааг useRegister hook toast-оор харуулна.
     } finally {
       setLoading(false);
     }
@@ -123,9 +121,8 @@ export default function RegisterPage() {
 
           <div className="space-y-2">
             <Label htmlFor="password">Нууц үг</Label>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               maxLength={128}
               placeholder="••••••••"
               {...register("password")}
@@ -137,9 +134,8 @@ export default function RegisterPage() {
 
           <div className="space-y-2">
             <Label htmlFor="confirm">Нууц үг давтах</Label>
-            <Input
+            <PasswordInput
               id="confirm"
-              type="password"
               maxLength={128}
               placeholder="••••••••"
               {...register("confirm")}
