@@ -9,6 +9,21 @@ export interface OrderNotificationParams {
   paymentMethod?: "qpay" | "cod";
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function formatPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length === 8) {
+    return `${digits.slice(0, 4)}-${digits.slice(4)}`;
+  }
+  return phone;
+}
+
 export async function sendOrderNotification(
   params: OrderNotificationParams
 ): Promise<void> {
@@ -17,22 +32,50 @@ export async function sendOrderNotification(
 
   if (!botToken || !chatId) return;
 
-  const itemList = params.items
-    .map((i) => `${i.name} x${i.quantity}`)
-    .join(", ");
+  const paymentLabel =
+    params.paymentMethod === "qpay"
+      ? "QPay"
+      : params.paymentMethod === "cod"
+        ? "Бараа хүлээж аваад төлөх"
+        : null;
 
-  const text = [
-    `📦 Шинэ захиалга: #${params.orderId}`,
-    `👤 Хэрэглэгч: ${params.customerName} / ${params.phone}`,
-    params.paymentMethod
-      ? `💳 Төлбөр: ${params.paymentMethod === "qpay" ? "QPay" : "Бараа хүлээж аваад төлөх"}`
-      : null,
-    `💰 Нийт дүн: ${new Intl.NumberFormat("mn-MN").format(params.totalAmount)}₮`,
-    `📍 Байршил: ${params.district}, ${params.address}`,
-    `📝 Бараанууд: ${itemList}`,
-  ]
-    .filter(Boolean)
+  const totalFormatted = `${new Intl.NumberFormat("mn-MN").format(
+    params.totalAmount
+  )}₮`;
+
+  const itemLines = params.items
+    .map(
+      (i) =>
+        `   • ${escapeHtml(i.name)} — <b>${i.quantity}</b> ширхэг`
+    )
     .join("\n");
+
+  const lines: string[] = [
+    "🔔 <b>ШИНЭ ЗАХИАЛГА ИРЛЭЭ</b>",
+    "",
+    `🆔 <b>Захиалгын дугаар:</b> #${escapeHtml(params.orderId)}`,
+    "",
+    "👤 <b>ЗАХИАЛАГЧИЙН МЭДЭЭЛЭЛ</b>",
+    `   • Нэр: ${escapeHtml(params.customerName)}`,
+    `   • Утас: <a href="tel:${escapeHtml(params.phone)}">${escapeHtml(
+      formatPhone(params.phone)
+    )}</a>`,
+    "",
+    "📍 <b>ХҮРГЭЛТИЙН ХАЯГ</b>",
+    `   • Дүүрэг: ${escapeHtml(params.district)}`,
+    `   • Хаяг: ${escapeHtml(params.address)}`,
+    "",
+    "📦 <b>ЗАХИАЛСАН БАРАА</b>",
+    itemLines,
+    "",
+  ];
+
+  if (paymentLabel) {
+    lines.push(`💳 <b>Төлбөрийн арга:</b> ${paymentLabel}`);
+  }
+  lines.push(`💰 <b>Нийт дүн:</b> ${totalFormatted}`);
+
+  const text = lines.join("\n");
 
   await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
     method: "POST",
@@ -41,6 +84,7 @@ export async function sendOrderNotification(
       chat_id: chatId,
       text,
       parse_mode: "HTML",
+      disable_web_page_preview: true,
     }),
   });
 }

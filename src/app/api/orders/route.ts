@@ -152,10 +152,10 @@ export async function POST(req: NextRequest) {
       }
 
       const updated = await Product.findOneAndUpdate(
-        mongoose.trusted({
+        {
           _id: item.productId,
-          stock: { $gte: item.quantity },
-        }),
+          stock: mongoose.trusted({ $gte: item.quantity }),
+        },
         { $inc: { stock: -item.quantity } },
         { new: true }
       );
@@ -202,12 +202,14 @@ export async function POST(req: NextRequest) {
         phone,
         recipientName,
       });
-    } catch {
+    } catch (err) {
+      console.error("[orders POST] Order.create failed", err);
       await rollbackStock(decremented);
-      return NextResponse.json(
-        { error: "Захиалга үүсгэхэд алдаа гарлаа" },
-        { status: 500 }
-      );
+      const msg =
+        process.env.NODE_ENV === "development" && err instanceof Error
+          ? err.message
+          : "Захиалга үүсгэхэд алдаа гарлаа";
+      return NextResponse.json({ error: msg }, { status: 500 });
     }
 
     // Create QPay invoice (only when QPay is selected)
@@ -249,7 +251,12 @@ export async function POST(req: NextRequest) {
       { orderId, qpayUrl, _id: order._id },
       { status: 201 }
     );
-  } catch {
-    return NextResponse.json({ error: "Захиалга үүсгэхэд алдаа гарлаа" }, { status: 500 });
+  } catch (err) {
+    console.error("[orders POST] unexpected error", err);
+    const msg =
+      process.env.NODE_ENV === "development" && err instanceof Error
+        ? err.message
+        : "Захиалга үүсгэхэд алдаа гарлаа";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
