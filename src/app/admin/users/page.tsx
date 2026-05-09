@@ -107,6 +107,7 @@ function AdminUsersContent() {
           <Input
             placeholder="Нэр, имэйлээр хайх..."
             value={inputQ}
+            maxLength={50}
             onChange={(e) => setInputQ(e.target.value)}
             className="pl-9 md:w-52 w-full"
           />

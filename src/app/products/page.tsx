@@ -304,6 +304,7 @@ export default function ProductsPage() {
           <Input
             placeholder="Бараа хайх..."
             value={search}
+            maxLength={50}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
           />

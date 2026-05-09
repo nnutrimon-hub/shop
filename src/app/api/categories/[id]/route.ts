@@ -20,6 +20,12 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
 
     if (body.name) {
       body.name = (body.name as string).replace(/<[^>]*>/g, "").trim();
+      if (body.name.length > 100) {
+        return NextResponse.json(
+          { error: "Ангилалын нэр хэт урт байна" },
+          { status: 400 },
+        );
+      }
       if (!body.slug) body.slug = slugify(body.name) + "-" + Date.now();
     }
 

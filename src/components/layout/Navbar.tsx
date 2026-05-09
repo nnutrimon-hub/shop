@@ -182,6 +182,7 @@ export default function Navbar() {
               type="text"
               placeholder="Бараа хайх..."
               value={searchQuery}
+              maxLength={50}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 setSearchOpen(true);
@@ -320,6 +321,7 @@ export default function Navbar() {
                 type="text"
                 placeholder="Бараа хайх..."
                 value={mobileQuery}
+                maxLength={50}
                 onChange={(e) => setMobileQuery(e.target.value)}
                 className="w-full px-3 py-2 pr-8 text-sm border rounded-lg bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
               />

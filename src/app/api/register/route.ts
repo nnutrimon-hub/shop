@@ -6,9 +6,18 @@ import DOMPurify from "isomorphic-dompurify";
 import { z } from "zod";
 
 const RegisterSchema = z.object({
-  name: z.string().min(2, "Нэр хэт богино байна"),
-  email: z.string().email("И-мэйл буруу байна"),
-  password: z.string().min(6, "Нууц үг хамгийн багадаа 6 тэмдэгт байна"),
+  name: z
+    .string()
+    .min(2, "Нэр хэт богино байна")
+    .max(100, "Нэр хэт урт байна"),
+  email: z
+    .string()
+    .email("И-мэйл буруу байна")
+    .max(254, "И-мэйл хэт урт байна"),
+  password: z
+    .string()
+    .min(6, "Нууц үг хамгийн багадаа 6 тэмдэгт байна")
+    .max(128, "Нууц үг хэт урт байна"),
 });
 
 export async function POST(req: NextRequest) {

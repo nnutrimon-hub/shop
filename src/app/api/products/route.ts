@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
     const page = Math.max(1, parseInt(searchParams.get("page") ?? "1"));
     const limit = Math.min(50, parseInt(searchParams.get("limit") ?? "20"));
     const categoryId = searchParams.get("category_id");
-    const q = searchParams.get("q");
+    const q = searchParams.get("q")?.slice(0, 50);
     const featured = searchParams.get("featured");
     const sale = searchParams.get("sale");
 
@@ -117,6 +117,31 @@ export async function POST(req: NextRequest) {
     body.description = DOMPurify.sanitize(body.description ?? "", {
       ALLOWED_TAGS: ["b", "i", "br", "p"],
     });
+
+    if (
+      (body.name && body.name.length > 200) ||
+      (body.brand && body.brand.length > 100) ||
+      (body.barcode && body.barcode.length > 50) ||
+      (body.description && body.description.length > 2000)
+    ) {
+      return NextResponse.json(
+        { error: "Текстэн талбар хэт урт байна" },
+        { status: 400 },
+      );
+    }
+
+    if (Array.isArray(body.variants)) {
+      const tooLong = body.variants.some(
+        (v: { label?: unknown }) =>
+          typeof v?.label === "string" && v.label.length > 50,
+      );
+      if (tooLong) {
+        return NextResponse.json(
+          { error: "Хэмжээний нэр хэт урт байна" },
+          { status: 400 },
+        );
+      }
+    }
 
     if (!body.slug) {
       body.slug = `${slugify(body.name)}-${Date.now()}`;

@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     const pageParam = searchParams.get("page");
     const page = pageParam ? Math.max(1, parseInt(pageParam)) : 0;
     const limit = page > 0 ? Math.min(100, parseInt(searchParams.get("limit") ?? "30")) : 0;
-    const q = searchParams.get("q")?.trim();
+    const q = searchParams.get("q")?.trim().slice(0, 50);
 
     const filter = q
       ? mongoose.trusted({
@@ -60,6 +60,18 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     body.name = ((body.name ?? "") as string).replace(/<[^>]*>/g, "").trim();
+    if (!body.name) {
+      return NextResponse.json(
+        { error: "Ангилалын нэр оруулна уу" },
+        { status: 400 },
+      );
+    }
+    if (body.name.length > 100) {
+      return NextResponse.json(
+        { error: "Ангилалын нэр хэт урт байна" },
+        { status: 400 },
+      );
+    }
     if (!body.slug) body.slug = slugify(body.name) + "-" + Date.now();
     if (!body.parentId || body.parentId === "") {
       body.parent = null;

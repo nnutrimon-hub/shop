@@ -13,10 +13,19 @@ import { toast } from "sonner";
 
 const RegisterSchema = z
   .object({
-    name: z.string().min(2, "Нэр хамгийн багадаа 2 тэмдэгт"),
-    email: z.string().email("И-мэйл буруу байна"),
-    password: z.string().min(6, "Нууц үг хамгийн багадаа 6 тэмдэгт"),
-    confirm: z.string(),
+    name: z
+      .string()
+      .min(2, "Нэр хамгийн багадаа 2 тэмдэгт")
+      .max(100, "Нэр хэт урт байна"),
+    email: z
+      .string()
+      .email("И-мэйл буруу байна")
+      .max(254, "И-мэйл хэт урт байна"),
+    password: z
+      .string()
+      .min(6, "Нууц үг хамгийн багадаа 6 тэмдэгт")
+      .max(128, "Нууц үг хэт урт байна"),
+    confirm: z.string().max(128),
   })
   .refine((d) => d.password === d.confirm, {
     message: "Нууц үг таарахгүй байна",
@@ -87,7 +96,12 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Нэр</Label>
-            <Input id="name" placeholder="Таны нэр" {...register("name")} />
+            <Input
+              id="name"
+              maxLength={100}
+              placeholder="Таны нэр"
+              {...register("name")}
+            />
             {errors.name && (
               <p className="text-xs text-destructive">{errors.name.message}</p>
             )}
@@ -98,6 +112,7 @@ export default function RegisterPage() {
             <Input
               id="email"
               type="email"
+              maxLength={254}
               placeholder="name@example.com"
               {...register("email")}
             />
@@ -111,6 +126,7 @@ export default function RegisterPage() {
             <Input
               id="password"
               type="password"
+              maxLength={128}
               placeholder="••••••••"
               {...register("password")}
             />
@@ -124,6 +140,7 @@ export default function RegisterPage() {
             <Input
               id="confirm"
               type="password"
+              maxLength={128}
               placeholder="••••••••"
               {...register("confirm")}
             />

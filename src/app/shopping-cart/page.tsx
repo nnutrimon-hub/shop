@@ -164,6 +164,7 @@ export default function ShoppingCartPage() {
               <Input
                 id="recipientName"
                 required
+                maxLength={100}
                 value={form.recipientName}
                 onChange={(e) =>
                   setForm({ ...form, recipientName: e.target.value })
@@ -177,6 +178,7 @@ export default function ShoppingCartPage() {
               <Input
                 id="phone"
                 required
+                maxLength={20}
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 placeholder="99112233"
@@ -207,6 +209,7 @@ export default function ShoppingCartPage() {
               <Textarea
                 id="address"
                 required
+                maxLength={500}
                 value={form.address}
                 onChange={(e) => setForm({ ...form, address: e.target.value })}
                 placeholder="Жишээ: Баянзүрх дүүрэг, 26-р хороо, 12-р байр, 34 тоот, 2-р орц (код: 1234). Холбогдох хүний дугаар: 99112233"

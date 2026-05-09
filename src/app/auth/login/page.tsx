@@ -12,8 +12,14 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 const LoginSchema = z.object({
-  email: z.string().email("И-мэйл буруу байна"),
-  password: z.string().min(1, "Нууц үг оруулна уу"),
+  email: z
+    .string()
+    .email("И-мэйл буруу байна")
+    .max(254, "И-мэйл хэт урт байна"),
+  password: z
+    .string()
+    .min(1, "Нууц үг оруулна уу")
+    .max(128, "Нууц үг хэт урт байна"),
 });
 
 type LoginForm = z.infer<typeof LoginSchema>;
@@ -92,6 +98,7 @@ export default function LoginPage() {
             <Input
               id="email"
               type="email"
+              maxLength={254}
               placeholder="name@example.com"
               {...register("email")}
             />
@@ -105,6 +112,7 @@ export default function LoginPage() {
             <Input
               id="password"
               type="password"
+              maxLength={128}
               placeholder="••••••••"
               {...register("password")}
             />

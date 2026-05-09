@@ -51,6 +51,31 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
         ALLOWED_TAGS: ["b", "i", "br", "p"],
       });
 
+    if (
+      (body.name && body.name.length > 200) ||
+      (body.brand && body.brand.length > 100) ||
+      (body.barcode && body.barcode.length > 50) ||
+      (body.description && body.description.length > 2000)
+    ) {
+      return NextResponse.json(
+        { error: "Текстэн талбар хэт урт байна" },
+        { status: 400 },
+      );
+    }
+
+    if (Array.isArray(body.variants)) {
+      const tooLong = body.variants.some(
+        (v: { label?: unknown }) =>
+          typeof v?.label === "string" && v.label.length > 50,
+      );
+      if (tooLong) {
+        return NextResponse.json(
+          { error: "Хэмжээний нэр хэт урт байна" },
+          { status: 400 },
+        );
+      }
+    }
+
     const existing = await Product.findById(id);
     if (!existing)
       return NextResponse.json({ error: "Бараа олдсонгүй" }, { status: 404 });

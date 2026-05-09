@@ -203,6 +203,7 @@ function AdminCategoriesContent() {
             <Input
               placeholder="Нэрээр хайх..."
               value={inputQ}
+              maxLength={50}
               onChange={(e) => setInputQ(e.target.value)}
               className="pl-9 md:w-52 w-full"
             />
@@ -393,6 +394,7 @@ function AdminCategoriesContent() {
                 <Input
                   id="cat-name"
                   required
+                  maxLength={100}
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   placeholder="Ангилалын нэр"

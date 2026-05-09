@@ -68,6 +68,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (
+      recipientName.length > 100 ||
+      phone.length > 20 ||
+      district.length > 100 ||
+      address.length > 500
+    ) {
+      return NextResponse.json(
+        { error: "Хүргэлтийн мэдээлэл хэт урт байна" },
+        { status: 400 },
+      );
+    }
+
     // Validate stock & build order items
     const orderItems = [];
     let totalAmount = 0;

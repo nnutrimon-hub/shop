@@ -239,6 +239,7 @@ function AdminProductsContent() {
             <Input
               placeholder="Бараа хайх..."
               value={inputQ}
+              maxLength={50}
               onChange={(e) => setInputQ(e.target.value)}
               className="pl-9 md:w-52 w-full"
             />
@@ -480,6 +481,7 @@ function AdminProductsContent() {
                     <Input
                       id="name"
                       required
+                      maxLength={200}
                       value={form.name}
                       onChange={(e) =>
                         setForm({ ...form, name: e.target.value })
@@ -493,6 +495,7 @@ function AdminProductsContent() {
                       <Label htmlFor="brand">Брэнд</Label>
                       <Input
                         id="brand"
+                        maxLength={100}
                         value={form.brand}
                         onChange={(e) =>
                           setForm({ ...form, brand: e.target.value })
@@ -504,6 +507,7 @@ function AdminProductsContent() {
                       <Label htmlFor="barcode">Бүтээгдэхүүний код</Label>
                       <Input
                         id="barcode"
+                        maxLength={50}
                         value={form.barcode}
                         onChange={(e) =>
                           setForm({ ...form, barcode: e.target.value })
@@ -518,6 +522,7 @@ function AdminProductsContent() {
                     <textarea
                       id="description"
                       rows={4}
+                      maxLength={2000}
                       value={form.description}
                       onChange={(e) =>
                         setForm({ ...form, description: e.target.value })
@@ -656,6 +661,7 @@ function AdminProductsContent() {
                         <Input
                           placeholder="Хэмжээ (1кг, 450гр...)"
                           value={v.label}
+                          maxLength={50}
                           onChange={(e) => {
                             const updated = [...form.variants];
                             updated[i] = {
