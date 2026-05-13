@@ -1,8 +1,8 @@
 "use client";
-import { getImageUrl } from "@/lib/storage";
 import { compressImage } from "@/lib/compressImage";
-import { API_ENDPOINTS } from "@/services/api/endpoints";
+import { getImageUrl } from "@/lib/storage";
 import { cn } from "@/lib/utils";
+import { API_ENDPOINTS } from "@/services/api/endpoints";
 import { ImageIcon, Loader2, Star, Upload, X } from "lucide-react";
 import Image from "next/image";
 import {
@@ -230,7 +230,7 @@ const MultiImagePicker = forwardRef<MultiImagePickerRef, Props>(
           ))}
 
           {/* Add slot */}
-          {canAdd && !uploading && (
+          {canAdd && totalSlots > 0 && !uploading && (
             <button
               type="button"
               onClick={() => inputRef.current?.click()}

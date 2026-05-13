@@ -131,7 +131,23 @@ export async function DELETE(req: NextRequest, { params }: Ctx) {
   try {
     await connectDB();
     const { id } = await params;
+
+    const existing = await Product.findById(id).lean();
+    if (!existing) {
+      return NextResponse.json({ error: "Бараа олдсонгүй" }, { status: 404 });
+    }
+
     await Product.findByIdAndUpdate(id, { isDeleted: true });
+
+    const keys = (existing.imageKeys ?? [])
+      .map((k) => String(k).trim())
+      .filter(Boolean);
+    if (keys.length > 0) {
+      deleteFiles(keys).catch((err: unknown) => {
+        console.error("[R2 delete error on product delete]", err);
+      });
+    }
+
     return NextResponse.json({ message: "Бараа устгагдлаа" });
   } catch {
     return NextResponse.json({ error: "Алдаа гарлаа" }, { status: 500 });
