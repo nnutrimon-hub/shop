@@ -36,7 +36,7 @@ export default function ShoppingCartPage() {
     phone: "",
     district: "",
     address: "",
-    paymentMethod: "qpay" as "qpay" | "cod",
+    paymentMethod: "cod" as "qpay" | "cod",
   });
 
   const selectedZone = zones?.find((z) => z.district === form.district);
@@ -45,11 +45,13 @@ export default function ShoppingCartPage() {
 
   const { mutate: createOrder, isPending } = useCreateOrder((data) => {
     clearCart();
+    /* QPay: дараа ашиглахад доорхыг uncomment хийнэ
     if (data.qpayUrl) {
       router.push(data.qpayUrl);
-    } else {
-      router.push("/accounts/orders");
+      return;
     }
+    */
+    router.push("/accounts/orders");
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -224,16 +226,24 @@ export default function ShoppingCartPage() {
                 onValueChange={(v) =>
                   setForm({
                     ...form,
-                    paymentMethod: (v ?? "qpay") as "qpay" | "cod",
+                    paymentMethod: (v ?? "cod") as "qpay" | "cod",
                   })
                 }
               >
                 <SelectTrigger className="w-full">
-                  {ORDER_PAYMENT_METHOD_LABELS[form.paymentMethod]}
+                  <SelectValue placeholder="Төлбөрийн арга сонгох">
+                    {ORDER_PAYMENT_METHOD_LABELS[form.paymentMethod]}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="qpay">QPay</SelectItem>
-                  <SelectItem value="cod">Бараа хүлээж аваад төлөх</SelectItem>
+                  {/* QPay: дараа идэвхжүүлэхэд uncomment
+                  <SelectItem value="qpay">
+                    {ORDER_PAYMENT_METHOD_LABELS.qpay}
+                  </SelectItem>
+                  */}
+                  <SelectItem value="cod">
+                    {ORDER_PAYMENT_METHOD_LABELS.cod}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -256,17 +266,14 @@ export default function ShoppingCartPage() {
               </div>
             </div>
 
+            {/* QPay идэвхтэй үед: qpay үед "QPay-р төлж захиалах" гэж өөрчилнө */}
             <Button
               type="submit"
               className="w-full"
               size="lg"
               disabled={isPending}
             >
-              {isPending
-                ? "Захиалж байна..."
-                : form.paymentMethod === "qpay"
-                  ? "QPay-р төлж захиалах"
-                  : "Захиалах"}
+              {isPending ? "Захиалж байна..." : "Захиалах"}
             </Button>
           </form>
         </div>
