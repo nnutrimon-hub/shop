@@ -4,6 +4,7 @@ import { formatPrice } from "@/lib/utils";
 import Product from "@/models/Product";
 import { Truck } from "lucide-react";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import AddToCartButton from "./AddToCartButton";
 import ImageGallery from "./ImageGallery";
 import VariantSelector from "./VariantSelector";
@@ -56,10 +57,11 @@ export default async function ProductDetailPage({ params }: Props) {
             ) : (
               <div className="relative aspect-square max-w-md rounded-2xl overflow-hidden bg-muted">
                 {coverKey ? (
-                  <img
+                  <Image
                     src={getImageUrl(coverKey, { width: 700 })}
                     alt={p.name}
-                    className="absolute inset-0 w-full h-full object-cover"
+                    fill
+                    className="object-cover"
                   />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">

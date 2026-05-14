@@ -43,7 +43,7 @@ export default function ShoppingCartPage() {
   const deliveryFee = selectedZone?.fee ?? 0;
   const grandTotal = totalPrice() + deliveryFee;
 
-  const { mutate: createOrder, isPending } = useCreateOrder((data) => {
+  const { mutate: createOrder, isPending } = useCreateOrder(() => {
     clearCart();
     /* QPay: дараа ашиглахад доорхыг uncomment хийнэ
     if (data.qpayUrl) {
