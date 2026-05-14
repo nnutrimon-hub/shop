@@ -6,18 +6,42 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ShoppingBag } from "lucide-react";
 import { useUIStore } from "@/store/uiStore";
 import { useCartStore } from "@/store/cartStore";
 import CartItem from "./CartItem";
 import { formatPrice } from "@/lib/utils";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function CartDrawer() {
   const { isCartOpen, setCartOpen } = useUIStore();
   const { items, clearCart, totalPrice, totalItems } = useCartStore();
+  const { data: session } = useSession();
+  const router = useRouter();
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
+
+  function handleCheckout() {
+    setCartOpen(false);
+    if (!session) {
+      setShowLoginDialog(true);
+    } else {
+      router.push("/shopping-cart");
+    }
+  }
 
   return (
+    <>
     <Sheet open={isCartOpen} onOpenChange={setCartOpen}>
       <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0">
         <SheetHeader className="px-4 py-4 border-b">
@@ -71,8 +95,7 @@ export default function CartDrawer() {
                 </Button>
                 <Button
                   className="flex-1"
-                  render={<Link href="/shopping-cart" />}
-                  onClick={() => setCartOpen(false)}
+                  onClick={handleCheckout}
                 >
                   Захиалах
                 </Button>
@@ -82,5 +105,30 @@ export default function CartDrawer() {
         )}
       </SheetContent>
     </Sheet>
+
+    <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Нэвтрэх шаардлагатай</DialogTitle>
+          <DialogDescription>
+            Захиалга өгөхийн тулд та эхлээд нэвтрэнэ үү.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setShowLoginDialog(false)}>
+            Болих
+          </Button>
+          <Button
+            onClick={() => {
+              setShowLoginDialog(false);
+              router.push("/auth/login?callbackUrl=/shopping-cart");
+            }}
+          >
+            Нэвтрэх
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

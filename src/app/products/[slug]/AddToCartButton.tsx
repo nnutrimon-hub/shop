@@ -1,8 +1,17 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useCartStore } from "@/store/cartStore";
 import { useUIStore } from "@/store/uiStore";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -24,8 +33,10 @@ export default function AddToCartButton({
 }: Props) {
   const { addItem } = useCartStore();
   const { setCartOpen } = useUIStore();
+  const { data: session } = useSession();
   const router = useRouter();
   const [qty, setQty] = useState(1);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
 
   const handleAdd = () => {
     if (stock <= 0) {
@@ -41,12 +52,17 @@ export default function AddToCartButton({
       toast.error("Бараа дууссан байна");
       return;
     }
+    if (!session) {
+      setShowLoginDialog(true);
+      return;
+    }
     addItem({ productId, name, imageKey, price, quantity: qty, stock });
     setCartOpen(false);
     router.push("/shopping-cart");
   };
 
   return (
+    <>
     <div className="space-y-3">
       {/* Quantity selector */}
       <div className="flex items-center gap-3">
@@ -91,5 +107,30 @@ export default function AddToCartButton({
         </Button>
       </div>
     </div>
+
+    <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Нэвтрэх шаардлагатай</DialogTitle>
+          <DialogDescription>
+            Захиалга өгөхийн тулд та эхлээд нэвтрэнэ үү.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setShowLoginDialog(false)}>
+            Болих
+          </Button>
+          <Button
+            onClick={() => {
+              setShowLoginDialog(false);
+              router.push("/auth/login?callbackUrl=/shopping-cart");
+            }}
+          >
+            Нэвтрэх
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
