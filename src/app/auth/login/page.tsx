@@ -28,7 +28,9 @@ type LoginForm = z.infer<typeof LoginSchema>;
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
+  /* Facebook: дараа ашиглахад uncomment
   const handleFacebookLogin = () => signIn("facebook", { callbackUrl: "/" });
+  */
 
   const {
     register,
@@ -78,6 +80,7 @@ export default function LoginPage() {
           >
             Google-р нэвтрэх
           </Button>
+          {/* Facebook: дараа ашиглахад uncomment
           <Button
             variant="outline"
             className="w-full"
@@ -85,6 +88,7 @@ export default function LoginPage() {
           >
             Facebook-р нэвтрэх
           </Button>
+          */}
         </div>
 
         <div className="flex items-center gap-2">

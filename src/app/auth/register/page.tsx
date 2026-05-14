@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
+import { Separator } from "@/components/ui/separator";
 import { useRegister } from "@/services/hooks/useAuth";
 import { toast } from "sonner";
 
@@ -89,6 +90,23 @@ export default function RegisterPage() {
               Нэвтрэх
             </Link>
           </p>
+        </div>
+
+        <div className="space-y-2">
+          <Button
+            variant="outline"
+            className="w-full"
+            type="button"
+            onClick={() => signIn("google", { callbackUrl: "/" })}
+          >
+            Google-р бүртгүүлэх
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Separator className="flex-1" />
+          <span className="text-xs text-muted-foreground">эсвэл</span>
+          <Separator className="flex-1" />
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
