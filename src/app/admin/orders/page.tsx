@@ -1,7 +1,6 @@
 "use client";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -19,6 +18,7 @@ import {
 } from "@/services/hooks/useOrders";
 import { ORDER_STATUS_LABELS, type OrderStatus } from "@/types";
 import { Loader2, Search, ShoppingBag } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 
@@ -192,13 +192,13 @@ function AdminOrdersContent() {
                     className="hover:bg-muted/20 transition-colors"
                     role="button"
                     tabIndex={0}
-                    onClick={() => router.push(`/admin/orders/${order._id}`)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        router.push(`/admin/orders/${order._id}`);
-                      }
-                    }}
+                    // onClick={() => router.push(`/admin/orders/${order._id}`)}
+                    // onKeyDown={(e) => {
+                    //   if (e.key === "Enter" || e.key === " ") {
+                    //     e.preventDefault();
+                    //     router.push(`/admin/orders/${order._id}`);
+                    //   }
+                    // }}
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
@@ -228,7 +228,9 @@ function AdminOrdersContent() {
                       <div className="text-sm text-muted-foreground">
                         <p className="line-clamp-1">{order.district}</p>
                         {order.address ? (
-                          <p className="text-xs line-clamp-1">{order.address}</p>
+                          <p className="text-xs line-clamp-1">
+                            {order.address}
+                          </p>
                         ) : null}
                       </div>
                     </td>

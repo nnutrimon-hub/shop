@@ -1,22 +1,20 @@
 "use client";
-import Link from "next/link";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatDate, formatPrice } from "@/lib/utils";
 import { useOrders } from "@/services/hooks/useOrders";
 import { ORDER_STATUS_LABELS, type OrderStatus } from "@/types";
-import { formatPrice, formatDate } from "@/lib/utils";
-import Image from "next/image";
-import { getImageUrl } from "@/lib/storage";
+import Link from "next/link";
 
 const STATUS_TABS: { value: string; label: string }[] = [
   { value: "all", label: "Бүгд" },
-  { value: "pending", label: "Хүлээгдэж байна" },
-  { value: "awaiting_payment", label: "Төлбөр хүлээж байна" },
-  { value: "paid", label: "Төлбөр хийгдсэн" },
-  { value: "processing", label: "Боловсруулж байна" },
-  { value: "shipped", label: "Хүргэлтэнд гарсан" },
-  { value: "delivered", label: "Хүргэгдсэн" },
+  // { value: "pending", label: "Хүлээгдэж байна" },
+  // { value: "awaiting_payment", label: "Төлбөр хүлээж байна" },
+  // { value: "paid", label: "Төлбөр хийгдсэн" },
+  // { value: "processing", label: "Боловсруулж байна" },
+  // { value: "shipped", label: "Хүргэлтэнд гарсан" },
+  // { value: "delivered", label: "Хүргэгдсэн" },
   { value: "cancelled", label: "Цуцлагдсан" },
 ];
 
@@ -39,7 +37,12 @@ export default function OrdersPage() {
     totalAmount: number;
     deliveryFee: number;
     createdAt: string;
-    items: Array<{ name: string; imageKey: string; price: number; quantity: number }>;
+    items: Array<{
+      name: string;
+      imageKey: string;
+      price: number;
+      quantity: number;
+    }>;
   }>;
 
   return (
@@ -70,55 +73,65 @@ export default function OrdersPage() {
               <div className="space-y-3">
                 {orders
                   .filter((o) => tab.value === "all" || o.status === tab.value)
-                  .map((order) => (
-                    <Link
-                      key={order._id}
-                      href={`/accounts/orders/${order._id}`}
-                      className="block p-4 rounded-xl border bg-card hover:border-primary transition-colors"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-1">
-                          <p className="font-medium">#{order.orderId}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {formatDate(order.createdAt)}
-                          </p>
-                          <div className="flex gap-1 flex-wrap mt-2">
-                            {order.items.slice(0, 3).map((item, i) => (
-                              <div
-                                key={i}
-                                className="relative w-10 h-10 rounded overflow-hidden bg-muted"
-                              >
-                                {item.imageKey ? (
-                                  <Image
-                                    src={getImageUrl(item.imageKey, {
-                                      width: 80,
-                                    })}
-                                    alt={item.name}
-                                    fill
-                                    className="object-cover"
-                                  />
-                                ) : null}
-                              </div>
-                            ))}
-                            {order.items.length > 3 && (
-                              <div className="w-10 h-10 rounded bg-muted flex items-center justify-center text-xs text-muted-foreground">
-                                +{order.items.length - 3}
-                              </div>
-                            )}
+                  .map((order, index) => {
+                    const names = order.items
+                      .slice(0, 3)
+                      .map((i) => i.name)
+                      .join(", ");
+                    const extra =
+                      order.items.length > 3
+                        ? ` +${order.items.length - 3} өөр бараа`
+                        : "";
+                    return (
+                      <Link
+                        key={order._id}
+                        href={`/accounts/orders/${order._id}`}
+                        className="block p-4 rounded-xl border bg-card hover:border-primary transition-colors"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="space-y-1 min-w-0">
+                            <div className="flex items-baseline gap-2">
+                              <span className="font-semibold text-sm shrink-0">
+                                {index + 1})
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                захиалгын код: #{order.orderId}
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {formatDate(order.createdAt)}
+                            </p>
+                            <p className="text-sm text-foreground line-clamp-2">
+                              {names}
+                              {extra}
+                            </p>
+                          </div>
+                          <div className="text-right space-y-2 shrink-0">
+                            <Badge
+                              variant={
+                                (STATUS_COLORS[order.status] ?? "outline") as
+                                  | "default"
+                                  | "secondary"
+                                  | "outline"
+                                  | "destructive"
+                              }
+                            >
+                              {ORDER_STATUS_LABELS[order.status] ??
+                                order.status}
+                            </Badge>
+                            <p className="font-bold text-primary">
+                              {formatPrice(
+                                order.totalAmount + order.deliveryFee,
+                              )}
+                            </p>
                           </div>
                         </div>
-                        <div className="text-right space-y-2">
-                          <Badge variant={(STATUS_COLORS[order.status] ?? "outline") as "default" | "secondary" | "outline" | "destructive"}>
-                            {ORDER_STATUS_LABELS[order.status] ?? order.status}
-                          </Badge>
-                          <p className="font-bold text-primary">
-                            {formatPrice(order.totalAmount + order.deliveryFee)}
-                          </p>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                {orders.filter((o) => tab.value === "all" || o.status === tab.value).length === 0 && (
+                      </Link>
+                    );
+                  })}
+                {orders.filter(
+                  (o) => tab.value === "all" || o.status === tab.value,
+                ).length === 0 && (
                   <p className="text-center py-8 text-muted-foreground">
                     Захиалга байхгүй байна
                   </p>

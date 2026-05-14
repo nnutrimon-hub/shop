@@ -1,9 +1,9 @@
 "use client";
-import { useSession } from "next-auth/react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { USER_ROLE_LABELS } from "@/types/labels";
+import { useSession } from "next-auth/react";
 
 export default function ProfilePage() {
   const { data: session } = useSession();
@@ -18,7 +18,7 @@ export default function ProfilePage() {
         <div className="overflow-x-auto scrollbar-hide pb-2">
           <TabsList className="inline-flex min-w-max">
             <TabsTrigger value="info">Мэдээлэл</TabsTrigger>
-            <TabsTrigger value="security">Аюулгүй байдал</TabsTrigger>
+            {/* <TabsTrigger value="security">Аюулгүй байдал</TabsTrigger> */}
           </TabsList>
         </div>
 
@@ -33,9 +33,12 @@ export default function ProfilePage() {
               </Avatar>
               <div>
                 <p className="text-lg font-semibold">{session.user?.name}</p>
-                <p className="text-sm text-muted-foreground">{session.user?.email}</p>
+                <p className="text-sm text-muted-foreground">
+                  {session.user?.email}
+                </p>
                 <Badge variant="outline" className="mt-1">
-                  {USER_ROLE_LABELS[session.user?.role ?? "user"] ?? session.user?.role}
+                  {USER_ROLE_LABELS[session.user?.role ?? "user"] ??
+                    session.user?.role}
                 </Badge>
               </div>
             </div>
