@@ -42,6 +42,16 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: "bg-red-100 text-red-700 border-red-200",
 };
 
+const STATUS_BG: Record<string, string> = {
+  pending: "bg-yellow-50 text-yellow-600",
+  awaiting_payment: "bg-orange-50 text-orange-600",
+  paid: "bg-blue-50 text-blue-600",
+  processing: "bg-purple-50 text-purple-600",
+  shipped: "bg-indigo-50 text-indigo-600",
+  delivered: "bg-emerald-50 text-emerald-600",
+  cancelled: "bg-red-50 text-red-600",
+};
+
 function AdminOrdersContent() {
   const router = useRouter();
   const pathname = usePathname();
@@ -140,7 +150,7 @@ function AdminOrdersContent() {
         </div>
       </div>
 
-      {/* Table */}
+      {/* Content */}
       {isLoading ? (
         <div className="space-y-2">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -157,126 +167,156 @@ function AdminOrdersContent() {
           </p>
         </div>
       ) : (
-        <div className="border rounded-xl overflow-hidden bg-card">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px]">
-              <thead>
-                <tr className="border-b bg-muted/40">
-                  <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3 uppercase tracking-wide">
-                    Захиалга
-                  </th>
-                  <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3 uppercase tracking-wide">
-                    Хэрэглэгч
-                  </th>
-                  <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3 uppercase tracking-wide hidden md:table-cell">
-                    Хаяг
-                  </th>
-                  <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3 uppercase tracking-wide hidden sm:table-cell">
-                    Огноо
-                  </th>
-                  <th className="text-right text-xs font-semibold text-muted-foreground px-4 py-3 uppercase tracking-wide">
-                    Дүн
-                  </th>
-                  <th className="px-4 py-3 w-52">
-                    <span className="sr-only">Төлөв</span>
-                  </th>
-                  <th className="px-4 py-3 w-32">
-                    <span className="sr-only">Дэлгэрэнгүй</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {orders.map((order) => (
-                  <tr
-                    key={order._id}
-                    className="hover:bg-muted/20 transition-colors"
-                    role="button"
-                    tabIndex={0}
-                    // onClick={() => router.push(`/admin/orders/${order._id}`)}
-                    // onKeyDown={(e) => {
-                    //   if (e.key === "Enter" || e.key === " ") {
-                    //     e.preventDefault();
-                    //     router.push(`/admin/orders/${order._id}`);
-                    //   }
-                    // }}
+        <>
+          {/* Mobile list */}
+          <div className="md:hidden border rounded-xl overflow-hidden bg-card divide-y">
+            {orders.map((order) => (
+              <div key={order._id} className="px-4 py-3.5 flex flex-col gap-2.5">
+                <div className="flex items-start gap-3">
+                  <div
+                    className={cn(
+                      "w-9 h-9 rounded-full flex items-center justify-center shrink-0 mt-0.5",
+                      STATUS_BG[order.status] ?? "bg-muted text-muted-foreground",
+                    )}
                   >
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
+                    <ShoppingBag className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-semibold truncate">{order.orderId}</p>
+                      <p className="text-sm font-bold text-primary shrink-0">
+                        {formatPrice(order.totalAmount + (order.deliveryFee ?? 0))}
+                      </p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {order.recipientName} · {order.phone}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {formatDate(order.createdAt, "YYYY.MM.DD HH:mm")}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-center gap-2">
+                  <Select
+                    value={order.status}
+                    onValueChange={(v) =>
+                      updateStatus.mutate({ id: order._id, status: v ?? order.status })
+                    }
+                  >
+                    <SelectTrigger className="h-7 text-xs w-40">
+                      <Badge
+                        className={cn(
+                          "text-[10px] border font-medium px-2 py-0.5",
+                          STATUS_COLORS[order.status] ?? "bg-muted text-muted-foreground border-border",
+                        )}
+                      >
+                        {ORDER_STATUS_LABELS[order.status] ?? order.status}
+                      </Badge>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STATUS_LIST.map((s) => (
+                        <SelectItem key={s} value={s} className="text-xs">
+                          {ORDER_STATUS_LABELS[s]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    render={<Link href={`/admin/orders/${order._id}`} />}
+                  >
+                    Дэлгэрэнгүй
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden md:block border rounded-xl overflow-hidden bg-card">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px]">
+                <thead>
+                  <tr className="border-b bg-muted/40">
+                    <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3 uppercase tracking-wide">
+                      Захиалга
+                    </th>
+                    <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3 uppercase tracking-wide">
+                      Хэрэглэгч
+                    </th>
+                    <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3 uppercase tracking-wide">
+                      Хаяг
+                    </th>
+                    <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3 uppercase tracking-wide">
+                      Огноо
+                    </th>
+                    <th className="text-right text-xs font-semibold text-muted-foreground px-4 py-3 uppercase tracking-wide">
+                      Дүн
+                    </th>
+                    <th className="px-4 py-3 w-52">
+                      <span className="sr-only">Төлөв</span>
+                    </th>
+                    <th className="px-4 py-3 w-32">
+                      <span className="sr-only">Дэлгэрэнгүй</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {orders.map((order) => (
+                    <tr key={order._id} className="hover:bg-muted/20 transition-colors">
+                      <td className="px-4 py-3">
                         <Badge
                           className={cn(
                             "text-[10px] border font-medium px-2 py-0.5",
-                            STATUS_COLORS[order.status] ??
-                              "bg-muted text-muted-foreground border-border",
+                            STATUS_COLORS[order.status] ?? "bg-muted text-muted-foreground border-border",
                           )}
                         >
                           {ORDER_STATUS_LABELS[order.status] ?? order.status}
                         </Badge>
-                      </div>
-                      <p className="text-sm font-semibold mt-1">
-                        {order.orderId}
-                      </p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="text-sm font-medium">
-                        {order.recipientName}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {order.phone}
-                      </p>
-                    </td>
-                    <td className="px-4 py-3 hidden md:table-cell">
-                      <div className="text-sm text-muted-foreground">
-                        <p className="line-clamp-1">{order.district}</p>
+                        <p className="text-sm font-semibold mt-1">{order.orderId}</p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="text-sm font-medium">{order.recipientName}</p>
+                        <p className="text-xs text-muted-foreground">{order.phone}</p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="text-sm text-muted-foreground line-clamp-1">{order.district}</p>
                         {order.address ? (
-                          <p className="text-xs line-clamp-1">
-                            {order.address}
-                          </p>
+                          <p className="text-xs text-muted-foreground line-clamp-1">{order.address}</p>
                         ) : null}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 hidden sm:table-cell">
-                      <p className="text-xs text-muted-foreground">
-                        {formatDate(order.createdAt, "YYYY.MM.DD HH:mm")}
-                      </p>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <p className="text-sm font-bold text-primary">
-                        {formatPrice(
-                          order.totalAmount + (order.deliveryFee ?? 0),
-                        )}
-                      </p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Select
-                        value={order.status}
-                        onValueChange={(v) =>
-                          updateStatus.mutate({
-                            id: order._id,
-                            status: v ?? order.status,
-                          })
-                        }
-                      >
-                        <SelectTrigger
-                          className="w-full h-8 text-xs"
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => e.stopPropagation()}
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="text-xs text-muted-foreground">
+                          {formatDate(order.createdAt, "YYYY.MM.DD HH:mm")}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <p className="text-sm font-bold text-primary">
+                          {formatPrice(order.totalAmount + (order.deliveryFee ?? 0))}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Select
+                          value={order.status}
+                          onValueChange={(v) =>
+                            updateStatus.mutate({ id: order._id, status: v ?? order.status })
+                          }
                         >
-                          {ORDER_STATUS_LABELS[order.status] ?? order.status}
-                        </SelectTrigger>
-                        <SelectContent>
-                          {STATUS_LIST.map((s) => (
-                            <SelectItem key={s} value={s} className="text-xs">
-                              {ORDER_STATUS_LABELS[s]}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div
-                        onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => e.stopPropagation()}
-                      >
+                          <SelectTrigger className="w-full h-8 text-xs">
+                            {ORDER_STATUS_LABELS[order.status] ?? order.status}
+                          </SelectTrigger>
+                          <SelectContent>
+                            {STATUS_LIST.map((s) => (
+                              <SelectItem key={s} value={s} className="text-xs">
+                                {ORDER_STATUS_LABELS[s]}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="px-4 py-3">
                         <Button
                           variant="outline"
                           size="sm"
@@ -285,14 +325,14 @@ function AdminOrdersContent() {
                         >
                           Дэлгэрэнгүй
                         </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Infinite scroll sentinel */}

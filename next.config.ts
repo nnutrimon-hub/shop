@@ -24,8 +24,10 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  // JSDOM-ийг багцлахгүй — isomorphic-dompurify ENOENT засах.
   serverExternalPackages: ["isomorphic-dompurify", "jsdom"],
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production",
+  },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

@@ -25,7 +25,7 @@ function formatPhone(phone: string): string {
 }
 
 export async function sendOrderNotification(
-  params: OrderNotificationParams
+  params: OrderNotificationParams,
 ): Promise<void> {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -40,17 +40,15 @@ export async function sendOrderNotification(
         : null;
 
   const totalFormatted = `${new Intl.NumberFormat("mn-MN").format(
-    params.totalAmount
+    params.totalAmount,
   )}₮`;
 
   const itemLines = params.items
-    .map(
-      (i) =>
-        `   • ${escapeHtml(i.name)} — <b>${i.quantity}</b> ширхэг`
-    )
+    .map((i) => `   • ${escapeHtml(i.name)} — <b>${i.quantity}</b> ширхэг`)
     .join("\n");
 
   const lines: string[] = [
+    "——————————————————————",
     "🔔 <b>ШИНЭ ЗАХИАЛГА ИРЛЭЭ</b>",
     "",
     `🆔 <b>Захиалгын дугаар:</b> #${escapeHtml(params.orderId)}`,
@@ -58,7 +56,7 @@ export async function sendOrderNotification(
     "👤 <b>ЗАХИАЛАГЧИЙН МЭДЭЭЛЭЛ</b>",
     `   • Нэр: ${escapeHtml(params.customerName)}`,
     `   • Утас: <a href="tel:${escapeHtml(params.phone)}">${escapeHtml(
-      formatPhone(params.phone)
+      formatPhone(params.phone),
     )}</a>`,
     "",
     "📍 <b>ХҮРГЭЛТИЙН ХАЯГ</b>",
@@ -74,6 +72,7 @@ export async function sendOrderNotification(
     lines.push(`💳 <b>Төлбөрийн арга:</b> ${paymentLabel}`);
   }
   lines.push(`💰 <b>Нийт дүн:</b> ${totalFormatted}`);
+  lines.push("——————————————————————");
 
   const text = lines.join("\n");
 

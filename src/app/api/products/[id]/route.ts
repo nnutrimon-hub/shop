@@ -2,6 +2,7 @@ import { connectDB } from "@/lib/mongoose";
 import { csrfCheck } from "@/lib/security";
 import { deleteFiles } from "@/lib/storage-server";
 import Product from "@/models/Product";
+import "@/models/Category";
 import { NextRequest, NextResponse } from "next/server";
 
 type Ctx = { params: Promise<{ id: string }> };

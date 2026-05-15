@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongoose";
 import Order from "@/models/Order";
+import "@/models/User";
 import { auth } from "@/lib/auth";
 import { csrfCheck } from "@/lib/security";
-import { sendOrderNotification } from "@/lib/telegram";
+// import { sendOrderNotification } from "@/lib/telegram";
 import type { OrderStatus } from "@/types";
 import { z } from "zod";
 
@@ -54,22 +55,21 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     if (!order)
       return NextResponse.json({ error: "Захиалга олдсонгүй" }, { status: 404 });
 
-    // Notify admin on paid status
-    if (status === "paid") {
-      try {
-        await sendOrderNotification({
-          orderId: order.orderId,
-          customerName: order.recipientName,
-          phone: order.phone,
-          totalAmount: order.totalAmount + order.deliveryFee,
-          district: order.district,
-          address: order.address,
-          items: order.items.map((i) => ({ name: i.name ?? "", quantity: i.quantity ?? 1 })),
-        });
-      } catch {
-        // Non-critical
-      }
-    }
+    // if (status === "paid") {
+    //   try {
+    //     await sendOrderNotification({
+    //       orderId: order.orderId,
+    //       customerName: order.recipientName,
+    //       phone: order.phone,
+    //       totalAmount: order.totalAmount + order.deliveryFee,
+    //       district: order.district,
+    //       address: order.address,
+    //       items: order.items.map((i) => ({ name: i.name ?? "", quantity: i.quantity ?? 1 })),
+    //     });
+    //   } catch {
+    //     // Non-critical
+    //   }
+    // }
 
     return NextResponse.json(order);
   } catch {
