@@ -97,8 +97,19 @@ export default async function HomePage() {
               Чанартай бараа.{" "}
               <span className="text-primary relative">
                 Хурдан хүргэлт.
-                <svg className="absolute -bottom-1 left-0 w-full" viewBox="0 0 300 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1 5.5C50 2 100 1 150 3.5C200 6 250 7 299 4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-primary/40"/>
+                <svg
+                  className="absolute -bottom-1 left-0 w-full"
+                  viewBox="0 0 300 8"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M1 5.5C50 2 100 1 150 3.5C200 6 250 7 299 4"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    className="text-primary/40"
+                  />
                 </svg>
               </span>
             </h1>
@@ -121,7 +132,9 @@ export default async function HomePage() {
                   variant="outline"
                   className="font-semibold px-7"
                   render={
-                    <Link href={`/products?category_id=${(categories as Array<{ _id: string }>)[0]._id}`} />
+                    <Link
+                      href={`/products?category_id=${(categories as Array<{ _id: string }>)[0]._id}`}
+                    />
                   }
                 >
                   Ангилал харах
@@ -135,7 +148,10 @@ export default async function HomePage() {
                 { icon: Package, label: "1000+ бараа" },
                 { icon: HeartHandshake, label: "Баталгаат" },
               ].map(({ icon: Icon, label }) => (
-                <div key={label} className="flex items-center gap-1.5 text-sm text-muted-foreground font-medium">
+                <div
+                  key={label}
+                  className="flex items-center gap-1.5 text-sm text-muted-foreground font-medium"
+                >
                   <Icon className="w-4 h-4 text-primary" />
                   {label}
                 </div>
@@ -151,11 +167,18 @@ export default async function HomePage() {
                 <Package className="w-14 h-14 text-primary/50" />
               </div>
               <p className="font-semibold text-sm">Шилдэг бараа</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Онцлох цуглуулга</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Онцлох цуглуулга
+              </p>
               <div className="flex items-center justify-between mt-2">
                 <span className="text-primary font-bold text-sm">₮45,000</span>
                 <div className="flex">
-                  {[1,2,3,4,5].map(i => <Star key={i} className="w-3 h-3 text-amber-400 fill-amber-400" />)}
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Star
+                      key={i}
+                      className="w-3 h-3 text-amber-400 fill-amber-400"
+                    />
+                  ))}
                 </div>
               </div>
             </div>
@@ -165,7 +188,9 @@ export default async function HomePage() {
                 <Truck className="w-3.5 h-3.5 text-emerald-600" />
               </div>
               <div>
-                <p className="text-[11px] font-semibold leading-tight">Өдрийн</p>
+                <p className="text-[11px] font-semibold leading-tight">
+                  Өдрийн
+                </p>
                 <p className="text-[10px] text-muted-foreground">хүргэлт</p>
               </div>
             </div>
@@ -175,7 +200,9 @@ export default async function HomePage() {
                 <Shield className="w-3.5 h-3.5 text-primary" />
               </div>
               <div>
-                <p className="text-[11px] font-semibold leading-tight">Баталгаат</p>
+                <p className="text-[11px] font-semibold leading-tight">
+                  Баталгаат
+                </p>
                 <p className="text-[10px] text-muted-foreground">бараа</p>
               </div>
             </div>
@@ -312,17 +339,19 @@ export default async function HomePage() {
       )}
 
       {/* ── Бүгд link ────────────────────────────────────────────────────── */}
-      <div className="flex justify-center">
-        <Button
-          size="lg"
-          variant="outline"
-          className="px-12 font-semibold"
-          render={<Link href="/products" />}
-        >
-          Бүгд
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
-      </div>
+      {onSale.length > 0 ? (
+        <div className="flex justify-center">
+          <Button
+            size="lg"
+            variant="outline"
+            className="px-12 font-semibold"
+            render={<Link href="/products" />}
+          >
+            Бүгд
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
+      ) : null}
 
       {/* ── Сүүлд нэмэгдсэн ──────────────────────────────────────────────── */}
       <section>
@@ -344,17 +373,19 @@ export default async function HomePage() {
       </section>
 
       {/* ── Бүгд link (bottom) ───────────────────────────────────────────── */}
-      <div className="flex justify-center pb-4">
-        <Button
-          size="lg"
-          variant="outline"
-          className="px-12 font-semibold"
-          render={<Link href="/products" />}
-        >
-          Бүгд
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
-      </div>
+      {recent.length > 0 ? (
+        <div className="flex justify-center pb-4">
+          <Button
+            size="lg"
+            variant="outline"
+            className="px-12 font-semibold"
+            render={<Link href="/products" />}
+          >
+            Бүгд
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
+      ) : null}
 
       {/* ── Why AziMarket ─────────────────────────────────────────────────── */}
       <section className="rounded-3xl border bg-card p-8 md:p-12">
