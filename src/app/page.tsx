@@ -76,36 +76,40 @@ export default async function HomePage() {
     getRecentProducts(),
     getCategories(),
   ]);
-  console.log(featured);
-
   return (
     <div className="space-y-16">
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary/80 text-primary-foreground">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-16 -right-16 w-72 h-72 rounded-full bg-white/5" />
-          <div className="absolute -bottom-8 -left-8 w-48 h-48 rounded-full bg-white/5" />
-          <div className="absolute top-1/2 right-1/4 w-32 h-32 rounded-full bg-white/5" />
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-50 via-white to-primary/5 border border-border/60">
+        {/* Background blobs */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-primary/8 blur-3xl" />
+          <div className="absolute -bottom-16 left-1/3 w-72 h-72 rounded-full bg-primary/6 blur-2xl" />
+          <div className="absolute top-8 right-1/3 w-40 h-40 rounded-full bg-rose-100/60 blur-2xl" />
         </div>
 
-        <div className="relative px-8 py-14 md:px-16 md:py-20">
-          <div className="max-w-2xl space-y-6">
-            <Badge className="bg-white/20 text-white border-0 text-xs font-medium px-3 py-1">
+        <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[420px] lg:min-h-[460px]">
+          {/* Left — text */}
+          <div className="flex flex-col justify-center px-8 py-14 md:px-14 md:py-16 space-y-6">
+            <div className="inline-flex w-fit items-center gap-2 bg-primary/10 text-primary text-xs font-semibold px-3.5 py-1.5 rounded-full">
               🇲🇳 Монголын шилдэг онлайн дэлгүүр
-            </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold leading-tight">
-              Чанартай бараа.
-              <br />
-              Хурдан хүргэлт.
+            </div>
+            <h1 className="text-4xl md:text-5xl font-extrabold leading-tight tracking-tight text-foreground">
+              Чанартай бараа.{" "}
+              <span className="text-primary relative">
+                Хурдан хүргэлт.
+                <svg className="absolute -bottom-1 left-0 w-full" viewBox="0 0 300 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1 5.5C50 2 100 1 150 3.5C200 6 250 7 299 4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-primary/40"/>
+                </svg>
+              </span>
             </h1>
-            <p className="text-primary-foreground/80 text-lg max-w-md">
+            <p className="text-muted-foreground text-base md:text-lg max-w-md leading-relaxed">
               Улаанбаатарт өдрийн хүргэлт. QPay болон карт хүлээн авна.
               Баталгаат бараа бүтээгдэхүүн.
             </p>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3 pt-1">
               <Button
                 size="lg"
-                className="bg-white text-primary hover:bg-white/90 hover:text-white font-semibold shadow-lg"
+                className="font-semibold shadow-md shadow-primary/20 px-7"
                 render={<Link href="/products" />}
               >
                 Дэлгүүр хэсэх
@@ -114,31 +118,70 @@ export default async function HomePage() {
               {categories.length > 0 && (
                 <Button
                   size="lg"
-                  className="border-white/40 text-white hover:bg-white/10"
+                  variant="outline"
+                  className="font-semibold px-7"
                   render={
-                    <Link
-                      href={`/products?category_id=${(categories as Array<{ _id: string }>)[0]._id}`}
-                    />
+                    <Link href={`/products?category_id=${(categories as Array<{ _id: string }>)[0]._id}`} />
                   }
                 >
                   Ангилал харах
                 </Button>
               )}
             </div>
-            <div className="flex flex-wrap gap-4 pt-2">
+            {/* Trust badges */}
+            <div className="flex flex-wrap gap-5 pt-2">
               {[
                 { icon: Star, label: "4.9★ үнэлгээ" },
                 { icon: Package, label: "1000+ бараа" },
                 { icon: HeartHandshake, label: "Баталгаат" },
               ].map(({ icon: Icon, label }) => (
-                <div
-                  key={label}
-                  className="flex items-center gap-1.5 text-sm text-primary-foreground/80"
-                >
-                  <Icon className="w-4 h-4" />
+                <div key={label} className="flex items-center gap-1.5 text-sm text-muted-foreground font-medium">
+                  <Icon className="w-4 h-4 text-primary" />
                   {label}
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Right — decorative cards */}
+          <div className="relative hidden lg:flex items-center justify-center pr-10">
+            {/* Main card */}
+            <div className="relative z-10 bg-white rounded-2xl shadow-xl shadow-primary/10 border border-border/60 p-5 w-52">
+              <div className="w-full h-32 rounded-xl bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center mb-3">
+                <Package className="w-14 h-14 text-primary/50" />
+              </div>
+              <p className="font-semibold text-sm">Шилдэг бараа</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Онцлох цуглуулга</p>
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-primary font-bold text-sm">₮45,000</span>
+                <div className="flex">
+                  {[1,2,3,4,5].map(i => <Star key={i} className="w-3 h-3 text-amber-400 fill-amber-400" />)}
+                </div>
+              </div>
+            </div>
+            {/* Floating badge top-right */}
+            <div className="absolute top-12 right-4 bg-white rounded-xl shadow-lg border border-border/60 px-3.5 py-2.5 flex items-center gap-2 z-20">
+              <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                <Truck className="w-3.5 h-3.5 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold leading-tight">Өдрийн</p>
+                <p className="text-[10px] text-muted-foreground">хүргэлт</p>
+              </div>
+            </div>
+            {/* Floating badge bottom-left */}
+            <div className="absolute bottom-16 left-4 bg-white rounded-xl shadow-lg border border-border/60 px-3.5 py-2.5 flex items-center gap-2 z-20">
+              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <Shield className="w-3.5 h-3.5 text-primary" />
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold leading-tight">Баталгаат</p>
+                <p className="text-[10px] text-muted-foreground">бараа</p>
+              </div>
+            </div>
+            {/* Blob */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-72 h-72 rounded-full bg-primary/5" />
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import CartDrawer from "@/components/cart/CartDrawer";
 import CartSync from "@/components/cart/CartSync";
 import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 import Providers from "@/components/layout/Providers";
 import BackButton from "@/components/layout/BackButton";
 import { auth } from "@/lib/auth";
@@ -46,6 +47,7 @@ export default async function RootLayout({
               {children}
             </div>
           </main>
+          <Footer />
           <Toaster position="top-right" richColors />
         </Providers>
       </body>
