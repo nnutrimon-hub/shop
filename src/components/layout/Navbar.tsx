@@ -362,7 +362,7 @@ export default function Navbar() {
           </nav>
 
           {!session && (
-            <div className="mt-6">
+            <div className="mt-6 px-2">
               <Button
                 render={<Link href="/auth/login" />}
                 className="w-full"

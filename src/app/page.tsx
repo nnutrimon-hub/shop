@@ -262,10 +262,10 @@ export default async function HomePage() {
       ).length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Ангилал</h2>
+            <h2 className="text-xl font-bold">Ангилал</h2>
             <Link
               href="/products"
-              className="text-sm text-primary hover:underline flex items-center gap-1 font-medium"
+              className="text-xs text-primary hover:underline flex items-center gap-1 font-medium"
             >
               Бүгдийг үзэх <ArrowRight className="w-3.5 h-3.5" />
             </Link>
@@ -301,14 +301,14 @@ export default async function HomePage() {
         <section>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <h2 className="text-2xl font-bold">Онцлох</h2>
+              <h2 className="text-xl font-bold">Онцлох</h2>
               <Badge className="bg-primary/10 text-primary border-0 text-[11px]">
                 ⭐ Онцлох
               </Badge>
             </div>
             <Link
               href="/products?featured=true"
-              className="text-sm text-primary hover:underline flex items-center gap-1 font-medium"
+              className="text-xs text-primary hover:underline flex items-center gap-1 font-medium"
             >
               Бүгдийг үзэх <ArrowRight className="w-3.5 h-3.5" />
             </Link>
@@ -322,14 +322,14 @@ export default async function HomePage() {
         <section>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <h2 className="text-2xl font-bold">Хямдрал</h2>
+              <h2 className="text-xl font-bold">Хямдрал</h2>
               <Badge className="bg-red-100 text-red-600 border-0 text-[11px]">
                 🔥 Хямдарсан
               </Badge>
             </div>
             <Link
               href="/products?sale=true"
-              className="text-sm text-primary hover:underline flex items-center gap-1 font-medium"
+              className="text-xs text-primary hover:underline flex items-center gap-1 font-medium"
             >
               Бүгдийг үзэх <ArrowRight className="w-3.5 h-3.5" />
             </Link>
@@ -357,14 +357,14 @@ export default async function HomePage() {
       <section>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <h2 className="text-2xl font-bold">Сүүлд нэмэгдсэн</h2>
+            <h2 className="text-xl font-bold">Сүүлд нэмэгдсэн</h2>
             <Badge className="bg-primary/10 text-primary border-0 text-[11px]">
               Шинэ
             </Badge>
           </div>
           <Link
             href="/products"
-            className="text-sm text-primary hover:underline flex items-center gap-1 font-medium"
+            className="text-xs text-primary hover:underline flex items-center gap-1 font-medium"
           >
             Бүгдийг үзэх <ArrowRight className="w-3.5 h-3.5" />
           </Link>
@@ -390,7 +390,7 @@ export default async function HomePage() {
       {/* ── Why AziMarket ─────────────────────────────────────────────────── */}
       <section className="rounded-3xl border bg-card p-8 md:p-12">
         <div className="text-center max-w-xl mx-auto mb-10">
-          <h2 className="text-2xl font-bold">Яагаад AziMarket?</h2>
+          <h2 className="text-xl font-bold">Яагаад AziMarket?</h2>
           <p className="text-muted-foreground mt-2 text-sm">
             Монголын тэргүүлэх онлайн дэлгүүр — хурдан, найдвартай, хямд
           </p>
