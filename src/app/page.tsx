@@ -79,14 +79,7 @@ export default async function HomePage() {
   return (
     <div className="space-y-16">
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-50 via-white to-primary/5 border border-border/60">
-        {/* Background blobs */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-primary/8 blur-3xl" />
-          <div className="absolute -bottom-16 left-1/3 w-72 h-72 rounded-full bg-primary/6 blur-2xl" />
-          <div className="absolute top-8 right-1/3 w-40 h-40 rounded-full bg-rose-100/60 blur-2xl" />
-        </div>
-
+      <section className="relative rounded-3xl border border-border/60 bg-gradient-to-br from-rose-50 via-white to-pink-50">
         <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[420px] lg:min-h-[460px]">
           {/* Left — text */}
           <div className="flex flex-col justify-center px-8 py-14 md:px-14 md:py-16 space-y-6">
