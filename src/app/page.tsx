@@ -358,9 +358,9 @@ export default async function HomePage() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-bold">Сүүлд нэмэгдсэн</h2>
-            <Badge className="bg-primary/10 text-primary border-0 text-[11px]">
+            {/* <Badge className="bg-primary/10 text-primary border-0 text-[11px]">
               Шинэ
-            </Badge>
+            </Badge> */}
           </div>
           <Link
             href="/products"
